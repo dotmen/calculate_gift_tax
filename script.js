@@ -7,6 +7,52 @@ const taxBrackets = [
     { limit: Infinity, rate: 50, deduction: 460000000 }
 ];
 
+// 취득세 및 지방세율
+const acquisitionTaxRate = 3.5 / 100; // 취득세율
+const educationTaxRate = 10 / 100; // 지방교육세율
+
+// 증여세 계산 함수
+function calculateGiftTax(taxableAmount) {
+    let tax = 0;
+    for (let i = 0; i < taxBrackets.length; i++) {
+        const bracket = taxBrackets[i];
+        const prevLimit = taxBrackets[i - 1]?.limit || 0;
+
+        if (taxableAmount > bracket.limit) {
+            tax += (bracket.limit - prevLimit) * (bracket.rate / 100);
+        } else {
+            tax += (taxableAmount - prevLimit) * (bracket.rate / 100);
+            tax -= bracket.deduction;
+            break;
+        }
+    }
+    return Math.max(tax, 0);
+}
+
+// 가산세 계산 함수
+function calculateLatePenalty(submissionDate, giftDate, giftTax) {
+    const giftDateObj = new Date(giftDate);
+    const submissionDateObj = new Date(submissionDate);
+
+    const diffInTime = submissionDateObj - giftDateObj;
+    const diffInDays = diffInTime / (1000 * 3600 * 24);
+
+    if (diffInDays <= 0) return 0; // 신고 기한 초과 없음
+    if (diffInDays <= 90) return giftTax * 0.1; // 3개월 초과
+    return giftTax * 0.2; // 6개월 초과
+}
+
+// 취득세 및 지방세 계산 함수
+function calculateLocalTaxes(realEstateValue) {
+    const acquisitionTax = realEstateValue * acquisitionTaxRate;
+    const educationTax = acquisitionTax * educationTaxRate;
+
+    return {
+        acquisitionTax: Math.round(acquisitionTax),
+        educationTax: Math.round(educationTax)
+    };
+}
+
 // 재산 유형에 따라 입력 필드 표시
 document.getElementById('assetType').addEventListener('change', function () {
     const selectedType = this.value;
@@ -47,28 +93,45 @@ document.getElementById('addGiftButton').addEventListener('click', function () {
 document.getElementById('taxForm').onsubmit = function (e) {
     e.preventDefault();
 
-    const giftAmount = parseInt(document.getElementById('cashAmount')?.value || 0);
-    const taxableAmount = Math.max(giftAmount - 50000000, 0);
+    // 재산 유형에 따른 금액 계산
+    const selectedType = document.getElementById('assetType').value;
+    let giftAmount = 0;
 
-    const giftTax = calculateGiftTax(taxableAmount);
-    const resultDiv = document.getElementById('result');
-    resultDiv.innerHTML = `<p><strong>증여세:</strong> ${giftTax.toLocaleString()}원</p>`;
-};
-
-// 증여세 계산 함수
-function calculateGiftTax(taxableAmount) {
-    let tax = 0;
-    for (let i = 0; i < taxBrackets.length; i++) {
-        const bracket = taxBrackets[i];
-        const prevLimit = taxBrackets[i - 1]?.limit || 0;
-
-        if (taxableAmount > bracket.limit) {
-            tax += (bracket.limit - prevLimit) * (bracket.rate / 100);
-        } else {
-            tax += (taxableAmount - prevLimit) * (bracket.rate / 100);
-            tax -= bracket.deduction;
-            break;
-        }
+    if (selectedType === 'cash') {
+        giftAmount = parseInt(document.getElementById('cashAmount')?.value || 0);
+    } else if (selectedType === 'realEstate') {
+        giftAmount = parseInt(document.getElementById('realEstateValue')?.value || 0);
+    } else if (selectedType === 'stock') {
+        const stockQuantity = parseInt(document.getElementById('stockQuantity')?.value || 0);
+        const stockPrice = parseInt(document.getElementById('stockPrice')?.value || 0);
+        giftAmount = stockQuantity * stockPrice;
     }
-    return Math.max(tax, 0);
-}
+
+    // 과세 표준 계산
+    const exemptionLimit = 50000000; // 기본 공제
+    const taxableAmount = Math.max(giftAmount - exemptionLimit, 0);
+
+    // 증여세 계산
+    const giftTax = calculateGiftTax(taxableAmount);
+
+    // 가산세 계산
+    const giftDate = document.getElementById('giftDate')?.value;
+    const submissionDate = document.getElementById('submissionDate')?.value;
+    const latePenalty = calculateLatePenalty(submissionDate, giftDate, giftTax);
+
+    // 취득세 및 지방세 계산 (부동산만 해당)
+    let localTaxes = { acquisitionTax: 0, educationTax: 0 };
+    if (selectedType === 'realEstate') {
+        localTaxes = calculateLocalTaxes(giftAmount);
+    }
+
+    // 결과 표시
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = `
+        <p><strong>증여세:</strong> ${giftTax.toLocaleString()}원</p>
+        <p><strong>가산세:</strong> ${latePenalty.toLocaleString()}원</p>
+        <p><strong>취득세:</strong> ${localTaxes.acquisitionTax.toLocaleString()}원</p>
+        <p><strong>지방교육세:</strong> ${localTaxes.educationTax.toLocaleString()}원</p>
+        <p><strong>최종 납부세액:</strong> ${(giftTax + latePenalty + localTaxes.acquisitionTax + localTaxes.educationTax).toLocaleString()}원</p>
+    `;
+};
