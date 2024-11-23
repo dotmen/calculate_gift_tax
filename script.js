@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const assetType = document.getElementById('assetType');
-    const cashInput = document.getElementById('cashInput');
-    const realEstateInput = document.getElementById('realEstateInput');
-    const stockInput = document.getElementById('stockInput');
+    const cashInput = document.getElementById('cashAmount');
+    const realEstateInput = document.getElementById('realEstatePrice');
+    const stockInput = document.getElementById('stockPrice');
     const calculateButton = document.getElementById('calculate');
     const results = document.getElementById('results');
 
@@ -14,7 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 콤마 추가 함수
     function formatNumberWithCommas(value) {
-        return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    // 콤마 제거 함수
+    function removeCommas(value) {
+        return value.replace(/,/g, '');
     }
 
     // 숫자 입력 시 콤마 적용
@@ -22,11 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const input = document.getElementById(inputId);
         input.addEventListener('input', () => {
             const cursorPosition = input.selectionStart;
-            const unformattedValue = input.value.replace(/,/g, '');
+            const unformattedValue = removeCommas(input.value);
             const formattedValue = formatNumberWithCommas(unformattedValue);
             input.value = formattedValue;
 
-            // 커서 위치를 유지
+            // 커서 위치 유지
             input.selectionStart = input.selectionEnd = cursorPosition + (formattedValue.length - unformattedValue.length);
         });
     }
