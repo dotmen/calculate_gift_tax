@@ -8,7 +8,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>증여세 계산기 (2024년 기준)</h1>
+        <h2>증여세 계산기 (2024년 기준)</h2>
         <form>
             <label for="assetType">재산 유형:</label>
             <select id="assetType">
@@ -61,11 +61,11 @@
             </select>
             <p class="info-text">신고 기한이 연장되는 경우(부동산, 주식 등), 연장을 선택하세요.</p>
 
-            <button type="button" id="calculate">계산하기</button>
+            <button type="button" id="calculate" class="blue-button">계산하기</button>
         </form>
 
         <div id="results" class="hidden">
-            <h2>계산 결과</h2>
+            <h3>계산 결과</h3>
             <p>증여세: <span id="giftTax">0</span>원</p>
             <p>가산세: <span id="penaltyTax">0</span>원</p>
             <p>취득세: <span id="acquisitionTax">0</span>원</p>
