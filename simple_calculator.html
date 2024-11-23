@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>테스트 계산기</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input {
+            margin: 10px 0;
+            padding: 5px;
+            width: 200px;
+        }
+        button {
+            padding: 5px 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>테스트 계산기</h1>
+    <label for="amount">금액 입력:</label>
+    <input type="text" id="amount" placeholder="예: 1000000">
+    <button id="calculate">계산하기</button>
+
+    <h2>결과</h2>
+    <p id="result">결과가 여기에 표시됩니다.</p>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const amountInput = document.getElementById('amount');
+            const calculateButton = document.getElementById('calculate');
+            const resultDisplay = document.getElementById('result');
+
+            // 콤마 적용 함수
+            function formatNumberWithCommas(value) {
+                return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
+
+            // 콤마 적용
+            amountInput.addEventListener('input', () => {
+                const unformattedValue = amountInput.value.replace(/,/g, '');
+                if (isNaN(unformattedValue)) {
+                    resultDisplay.textContent = "숫자만 입력하세요.";
+                    return;
+                }
+                const formattedValue = formatNumberWithCommas(unformattedValue);
+                amountInput.value = formattedValue;
+            });
+
+            // 계산하기 버튼
+            calculateButton.addEventListener('click', () => {
+                const rawValue = amountInput.value.replace(/,/g, '');
+                if (isNaN(rawValue) || rawValue === "") {
+                    resultDisplay.textContent = "올바른 금액을 입력하세요.";
+                    return;
+                }
+                const calculatedValue = parseInt(rawValue) * 2; // 예시: 2배로 계산
+                resultDisplay.textContent = `계산 결과: ${formatNumberWithCommas(calculatedValue)}원`;
+            });
+        });
+    </script>
+</body>
+</html>
