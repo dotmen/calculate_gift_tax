@@ -40,6 +40,12 @@
                 <option value="4">기타(친구, 친인척 등) - 공제 한도: 10,000,000원</option>
             </select>
 
+            <label>과거 증여 금액:</label>
+            <div id="pastGifts">
+                <input type="text" class="past-gift-input" placeholder="예: 10,000,000">
+            </div>
+            <button type="button" id="addPastGift">과거 증여 금액 추가</button>
+
             <label for="giftDate">증여일:</label>
             <input type="date" id="giftDate">
             <p class="info-text">증여일은 증여 계약서 서명일 또는 재산 이전일입니다.</p>
@@ -54,12 +60,6 @@
                 <option value="6">연장 (6개월)</option>
             </select>
             <p class="info-text">신고 기한이 연장되는 경우(부동산, 주식 등), 연장을 선택하세요.</p>
-
-            <label>과거 증여 금액:</label>
-            <div id="pastGifts">
-                <input type="text" class="past-gift-input" placeholder="예: 10,000,000">
-            </div>
-            <button type="button" id="addPastGift">과거 증여 금액 추가</button>
 
             <button type="button" id="calculate">계산하기</button>
         </form>
