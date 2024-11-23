@@ -63,15 +63,30 @@
             margin-top: 15px;
             text-align: left;
         }
+
+        .inline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
     <div class="calculator">
         <h1 id="title">증여세 계산기 (2024년 기준)</h1>
         <form id="taxForm">
-            <label for="giftAmount">증여 금액 (원):</label>
-            <input type="text" id="giftAmount" placeholder="예: 100,000,000" required>
+            <!-- 재산 유형 -->
+            <label for="assetType">재산 유형:</label>
+            <select id="assetType">
+                <option value="cash">현금</option>
+                <option value="realEstate">부동산</option>
+                <option value="stock">주식</option>
+            </select>
 
+            <!-- 재산 입력 필드 -->
+            <div id="additionalFields"></div>
+
+            <!-- 관계 -->
             <label for="relationship">관계:</label>
             <select id="relationship">
                 <option value="50000000" data-period="10">직계비속(성년 자녀) - 공제 한도: 50,000,000원</option>
@@ -81,11 +96,16 @@
                 <option value="10000000" data-period="0">타인, 친구, 친인척 등 - 공제 한도: 10,000,000원</option>
             </select>
 
-            <label for="previousGift">과거 증여 금액 (원):</label>
-            <input type="text" id="previousGift" placeholder="예: 20,000,000">
+            <!-- 과거 증여 금액 -->
+            <label>과거 증여 금액:</label>
+            <div id="previousGifts"></div>
+            <button type="button" id="addGiftButton">과거 증여 금액 추가</button>
 
-            <label for="giftPeriod">증여 합산 기간 (년):</label>
-            <input type="text" id="giftPeriod" value="10" disabled>
+            <!-- 증여일 및 신고일 -->
+            <label for="giftDate">증여일:</label>
+            <input type="date" id="giftDate">
+            <label for="reportDate">신고일:</label>
+            <input type="date" id="reportDate">
 
             <button type="submit" id="button-calculate">계산하기</button>
         </form>
@@ -102,12 +122,59 @@
             { limit: Infinity, rate: 50, deduction: 460000000 }
         ];
 
-        // 관계 선택 시 합산 기간 자동 설정
-        document.getElementById('relationship').addEventListener('change', function () {
-            const selectedOption = this.options[this.selectedIndex];
-            const giftPeriod = document.getElementById('giftPeriod');
-            giftPeriod.value = selectedOption.getAttribute('data-period'); // 합산 기간 설정
+        // 재산 유형 선택 시 추가 필드 변경
+        document.getElementById('assetType').addEventListener('change', function () {
+            const selectedType = this.value;
+            const additionalFields = document.getElementById('additionalFields');
+            additionalFields.innerHTML = ''; // 기존 필드 초기화
+
+            if (selectedType === 'realEstate') {
+                additionalFields.innerHTML = `
+                    <label for="realEstateValue">부동산 공시가격 (원):</label>
+                    <input type="text" id="realEstateValue" placeholder="예: 500,000,000">
+                `;
+            } else if (selectedType === 'stock') {
+                additionalFields.innerHTML = `
+                    <label for="stockQuantity">주식 수량:</label>
+                    <input type="number" id="stockQuantity" placeholder="예: 100">
+                    <label for="stockPrice">증여일 기준 주가 (원):</label>
+                    <input type="text" id="stockPrice" placeholder="예: 50,000">
+                `;
+            }
         });
+
+        // 과거 증여 금액 추가
+        document.getElementById('addGiftButton').addEventListener('click', function () {
+            const previousGifts = document.getElementById('previousGifts');
+            const inputField = document.createElement('input');
+            inputField.type = 'text';
+            inputField.placeholder = '예: 10,000,000';
+            previousGifts.appendChild(inputField);
+        });
+
+        // 과거 증여 금액 합산
+        function getTotalPreviousGifts() {
+            const inputs = document.querySelectorAll('#previousGifts input');
+            let total = 0;
+            inputs.forEach(input => {
+                total += parseInt(input.value.replace(/,/g, '')) || 0;
+            });
+            return total;
+        }
+
+        // 가산세 계산
+        function calculatePenalty(tax) {
+            const giftDate = new Date(document.getElementById('giftDate').value);
+            const reportDate = new Date(document.getElementById('reportDate').value);
+            const diffInDays = (reportDate - giftDate) / (1000 * 60 * 60 * 24);
+
+            if (diffInDays > 90 && diffInDays <= 180) {
+                return tax * 0.1; // 10% 가산세
+            } else if (diffInDays > 180) {
+                return tax * 0.2; // 20% 가산세
+            }
+            return 0; // 신고기한 내 신고
+        }
 
         // 증여세 계산
         document.getElementById('taxForm').onsubmit = function (e) {
@@ -118,7 +185,7 @@
             const period = parseInt(relationship.getAttribute('data-period')) || 0;
 
             const giftAmount = parseInt(document.getElementById('giftAmount').value.replace(/,/g, '')) || 0;
-            const previousGift = parseInt(document.getElementById('previousGift').value.replace(/,/g, '')) || 0;
+            const previousGift = getTotalPreviousGifts();
 
             const totalTaxable = period > 0
                 ? Math.max(giftAmount + previousGift - exemption, 0)
@@ -135,26 +202,15 @@
                 }
             }
 
-            document.getElementById('result').innerText = `최종 증여세액은 ${Math.max(tax, 0).toLocaleString()}원입니다.`;
+            const penalty = calculatePenalty(tax);
+            const totalTax = tax + penalty;
+
+            document.getElementById('result').innerText = `
+                증여세: ${Math.max(tax, 0).toLocaleString()}원
+                가산세: ${Math.max(penalty, 0).toLocaleString()}원
+                최종 납부세액: ${Math.max(totalTax, 0).toLocaleString()}원
+            `;
         };
-
-        // 입력 필드에 쉼표 추가 기능
-        function formatNumberInput(inputElement) {
-            const value = inputElement.value.replace(/,/g, '');
-            if (!isNaN(value) && value !== '') {
-                inputElement.value = parseInt(value, 10).toLocaleString();
-            } else {
-                inputElement.value = '';
-            }
-        }
-
-        document.getElementById('giftAmount').addEventListener('input', function () {
-            formatNumberInput(this);
-        });
-
-        document.getElementById('previousGift').addEventListener('input', function () {
-            formatNumberInput(this);
-        });
     </script>
 </body>
 </html>
