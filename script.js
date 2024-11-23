@@ -11,7 +11,7 @@ const taxBrackets = [
 document.getElementById('assetType').addEventListener('change', function () {
     const selectedType = this.value;
     const additionalFields = document.getElementById('additionalFields');
-    additionalFields.innerHTML = ''; // 필드 초기화
+    additionalFields.innerHTML = ''; // 기존 필드 초기화
 
     if (selectedType === 'cash') {
         additionalFields.innerHTML = `
