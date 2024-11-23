@@ -30,16 +30,19 @@ function calculateGiftTax(taxableAmount) {
 }
 
 // 가산세 계산 함수
-function calculateLatePenalty(submissionDate, giftDate, giftTax) {
+function calculateLatePenalty(submissionDate, giftDate, giftTax, extendedPeriod) {
     const giftDateObj = new Date(giftDate);
     const submissionDateObj = new Date(submissionDate);
 
     const diffInTime = submissionDateObj - giftDateObj;
     const diffInDays = diffInTime / (1000 * 3600 * 24);
 
-    if (diffInDays <= 0) return 0; // 신고 기한 초과 없음
-    if (diffInDays <= 90) return giftTax * 0.1; // 3개월 초과
-    return giftTax * 0.2; // 6개월 초과
+    // 신고기한 설정 (기본 3개월 또는 연장 6개월)
+    const gracePeriodDays = extendedPeriod ? 180 : 90;
+
+    if (diffInDays <= gracePeriodDays) return 0; // 신고 기한 내
+    if (diffInDays <= gracePeriodDays + 90) return giftTax * 0.1; // 신고기한 초과 3개월 이내
+    return giftTax * 0.2; // 신고기한 초과 6개월 이상
 }
 
 // 취득세 및 지방세 계산 함수
@@ -52,6 +55,18 @@ function calculateLocalTaxes(realEstateValue) {
         educationTax: Math.round(educationTax)
     };
 }
+
+// 재산 유형 변경 시 신고 기한 기본값 설정
+document.getElementById('assetType').addEventListener('change', function () {
+    const selectedType = this.value;
+    const extendedPeriodField = document.getElementById('extendedPeriod');
+
+    if (selectedType === 'realEstate' || selectedType === 'stock') {
+        extendedPeriodField.value = "true"; // 연장 가능
+    } else {
+        extendedPeriodField.value = "false"; // 기본 3개월
+    }
+});
 
 // 재산 유형에 따라 입력 필드 표시
 document.getElementById('assetType').addEventListener('change', function () {
@@ -108,7 +123,13 @@ document.getElementById('taxForm').onsubmit = function (e) {
     }
 
     // 과세 표준 계산
-    const exemptionLimit = 50000000; // 기본 공제
+    const exemptionLimit = {
+        child: 50000000,
+        spouse: 600000000,
+        inLaw: 50000000,
+        other: 10000000
+    }[document.getElementById('relationship').value] || 0;
+
     const taxableAmount = Math.max(giftAmount - exemptionLimit, 0);
 
     // 증여세 계산
@@ -117,7 +138,8 @@ document.getElementById('taxForm').onsubmit = function (e) {
     // 가산세 계산
     const giftDate = document.getElementById('giftDate')?.value;
     const submissionDate = document.getElementById('submissionDate')?.value;
-    const latePenalty = calculateLatePenalty(submissionDate, giftDate, giftTax);
+    const extendedPeriod = document.getElementById('extendedPeriod').value === "true";
+    const latePenalty = calculateLatePenalty(submissionDate, giftDate, giftTax, extendedPeriod);
 
     // 취득세 및 지방세 계산 (부동산만 해당)
     let localTaxes = { acquisitionTax: 0, educationTax: 0 };
