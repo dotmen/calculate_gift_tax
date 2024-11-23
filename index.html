@@ -91,6 +91,7 @@
     </div>
 
     <script>
+        // 언어 데이터 정의
         const languages = {
             ko: {
                 title: "증여세 계산기 (2024년 기준)",
@@ -114,10 +115,12 @@
 
         let currentLanguage = "ko";
 
+        // 언어 전환 함수
         function toggleLanguage() {
             currentLanguage = currentLanguage === "ko" ? "en" : "ko";
             const lang = languages[currentLanguage];
 
+            // UI 텍스트 업데이트
             document.getElementById('title').innerText = lang.title;
             document.getElementById('label-giftAmount').innerText = lang.giftAmount;
             document.getElementById('label-relationship').innerText = lang.relationship;
@@ -134,6 +137,7 @@
             { limit: Infinity, rate: 50, deduction: 460000000 }
         ];
 
+        // 증여세 계산
         document.getElementById('taxForm').onsubmit = function(e) {
             e.preventDefault();
 
