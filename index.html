@@ -70,7 +70,7 @@
         <h1 id="title">증여세 계산기 (2024년 기준)</h1>
         <form id="taxForm">
             <label for="giftAmount" id="label-giftAmount">증여 금액 (원):</label>
-            <input type="number" id="giftAmount" placeholder="예: 100000000" required>
+            <input type="text" id="giftAmount" placeholder="예: 100,000,000" required>
 
             <label for="relationship" id="label-relationship">관계:</label>
             <select id="relationship">
@@ -81,7 +81,7 @@
             </select>
 
             <label for="previousGift" id="label-previousGift">10년 내 증여 금액 (원):</label>
-            <input type="number" id="previousGift" placeholder="예: 20000000">
+            <input type="text" id="previousGift" placeholder="예: 20,000,000">
 
             <button type="submit" id="button-calculate">계산하기</button>
         </form>
@@ -91,7 +91,6 @@
     </div>
 
     <script>
-        // 언어 데이터 정의
         const languages = {
             ko: {
                 title: "증여세 계산기 (2024년 기준)",
@@ -115,12 +114,10 @@
 
         let currentLanguage = "ko";
 
-        // 언어 전환 함수
         function toggleLanguage() {
             currentLanguage = currentLanguage === "ko" ? "en" : "ko";
             const lang = languages[currentLanguage];
 
-            // UI 텍스트 업데이트
             document.getElementById('title').innerText = lang.title;
             document.getElementById('label-giftAmount').innerText = lang.giftAmount;
             document.getElementById('label-relationship').innerText = lang.relationship;
@@ -137,13 +134,30 @@
             { limit: Infinity, rate: 50, deduction: 460000000 }
         ];
 
-        // 증여세 계산
-        document.getElementById('taxForm').onsubmit = function(e) {
+        // 입력 필드에 쉼표 추가 함수
+        function formatNumberInput(inputElement) {
+            const value = inputElement.value.replace(/,/g, '');
+            if (!isNaN(value) && value !== '') {
+                inputElement.value = parseInt(value, 10).toLocaleString();
+            } else {
+                inputElement.value = '';
+            }
+        }
+
+        document.getElementById('giftAmount').addEventListener('input', function () {
+            formatNumberInput(this);
+        });
+
+        document.getElementById('previousGift').addEventListener('input', function () {
+            formatNumberInput(this);
+        });
+
+        document.getElementById('taxForm').onsubmit = function (e) {
             e.preventDefault();
 
-            const giftAmount = parseInt(document.getElementById('giftAmount').value) || 0;
+            const giftAmount = parseInt(document.getElementById('giftAmount').value.replace(/,/g, '')) || 0;
             const exemptionLimit = parseInt(document.getElementById('relationship').value) || 0;
-            const previousGift = parseInt(document.getElementById('previousGift').value) || 0;
+            const previousGift = parseInt(document.getElementById('previousGift').value.replace(/,/g, '')) || 0;
 
             const totalTaxable = Math.max(giftAmount + previousGift - exemptionLimit, 0);
 
