@@ -1,26 +1,14 @@
 // 숫자 포맷(쉼표 추가) 함수
 function formatNumber(input) {
-    const value = input.value.replace(/,/g, ''); // 기존 쉼표 제거
-    if (!isNaN(value) && value !== "") {
-        input.value = parseInt(value, 10).toLocaleString(); // 쉼표 추가
-    } else {
-        input.value = ""; // 숫자가 아니면 빈칸 유지
+    const value = input.value.replace(/,/g, '');
+    if (!isNaN(value)) {
+        input.value = parseInt(value, 10).toLocaleString();
     }
 }
 
 // 숫자에서 쉼표 제거 후 계산
 function parseInput(value) {
-    return parseInt(value.replace(/,/g, ''), 10) || 0; // 쉼표 제거 후 숫자로 변환
-}
-
-// 현금 금액 입력란에 쉼표 추가
-const cashAmountInput = document.getElementById('cashAmount');
-if (cashAmountInput) {
-    cashAmountInput.addEventListener('input', function () {
-        formatNumber(this);
-    });
-} else {
-    console.error("cashAmount 입력란을 찾을 수 없습니다.");
+    return parseInt(value.replace(/,/g, ''), 10) || 0;
 }
 
 // 재산 유형 선택 시 입력란 표시
@@ -55,6 +43,7 @@ document.getElementById('calculate').addEventListener('click', function () {
     const relationship = document.getElementById('relationship').value;
     const giftDate = new Date(document.getElementById('giftDate').value);
     const reportDate = new Date(document.getElementById('reportDate').value);
+    const reportDeadline = parseInt(document.getElementById('reportDeadline').value, 10); // 3 or 6 months
     const pastGifts = Array.from(document.querySelectorAll('.past-gift-input'))
         .map(input => parseInput(input.value))
         .reduce((sum, val) => sum + val, 0);
@@ -80,29 +69,18 @@ document.getElementById('calculate').addEventListener('click', function () {
     // 가산세 계산
     let penaltyTax = 0;
     if (reportDate > giftDate) {
-        const timeDiff = Math.ceil((reportDate - giftDate) / (1000 * 60 * 60 * 24));
-        if (timeDiff > 90 && timeDiff <= 180) {
+        const timeDiff = Math.ceil((reportDate - giftDate) / (1000 * 60 * 60 * 24)); // Days difference
+        if (timeDiff > reportDeadline * 30 && timeDiff <= (reportDeadline + 3) * 30) {
             penaltyTax = giftTax * 0.1;
-        } else if (timeDiff > 180) {
+        } else if (timeDiff > (reportDeadline + 3) * 30) {
             penaltyTax = giftTax * 0.2;
         }
     }
 
-    // 취득세 및 지방교육세 계산 (부동산만 해당)
-    let acquisitionTax = 0, localEducationTax = 0;
-    if (assetType === 'realEstate') {
-        acquisitionTax = amount * 0.035; // 취득세율 3.5%
-        localEducationTax = acquisitionTax * 0.1; // 지방교육세 10% of 취득세
-    }
-
     // 최종 세액 계산
-    const totalTax = giftTax + penaltyTax + acquisitionTax + localEducationTax;
+    const totalTax = giftTax + penaltyTax;
 
     // 결과 표시
     document.getElementById('giftTax').textContent = giftTax.toLocaleString();
     document.getElementById('penaltyTax').textContent = penaltyTax.toLocaleString();
-    document.getElementById('acquisitionTax').textContent = acquisitionTax.toLocaleString();
-    document.getElementById('localEducationTax').textContent = localEducationTax.toLocaleString();
-    document.getElementById('totalTax').textContent = totalTax.toLocaleString();
-    document.getElementById('results').classList.remove('hidden');
-});
+    document.getElementById('totalTax').textContent = totalTax.toLocale
