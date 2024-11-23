@@ -7,19 +7,19 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
+            background-color: #f4f4f4;
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
         }
 
         .calculator {
             background: #ffffff;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             width: 400px;
             padding: 20px;
             text-align: center;
@@ -27,16 +27,14 @@
 
         .calculator h1 {
             font-size: 24px;
-            color: #333;
             margin-bottom: 20px;
         }
 
         .calculator label {
             display: block;
+            margin-bottom: 5px;
             text-align: left;
             font-weight: bold;
-            margin-bottom: 5px;
-            color: #555;
         }
 
         .calculator input, .calculator select, .calculator button {
@@ -45,15 +43,14 @@
             margin-bottom: 15px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            font-size: 16px;
         }
 
         .calculator button {
             background-color: #4CAF50;
             color: white;
+            font-weight: bold;
             border: none;
             cursor: pointer;
-            font-weight: bold;
         }
 
         .calculator button:hover {
@@ -61,46 +58,81 @@
         }
 
         #result {
-            font-size: 18px;
+            font-size: 16px;
             color: #333;
             margin-top: 15px;
+            text-align: left;
         }
     </style>
 </head>
 <body>
     <div class="calculator">
-        <h1>증여세 계산기 (2024년 기준)</h1>
+        <h1 id="title">증여세 계산기 (2024년 기준)</h1>
         <form id="taxForm">
             <label for="giftAmount">증여 금액 (원):</label>
             <input type="number" id="giftAmount" placeholder="예: 100000000" required>
-            
+
             <label for="relationship">관계:</label>
             <select id="relationship">
                 <option value="50000000">직계비속(자녀) - 공제 한도: 50,000,000원</option>
                 <option value="600000000">배우자 - 공제 한도: 600,000,000원</option>
-                <option value="10000000">기타 - 공제 한도: 10,000,000원</option>
+                <option value="10000000">기타(친구, 형제 등) - 공제 한도: 10,000,000원</option>
+                <option value="20000000">미성년자(자녀) - 공제 한도: 20,000,000원</option>
             </select>
+
+            <label for="previousGift">10년 내 증여 금액 (원):</label>
+            <input type="number" id="previousGift" placeholder="예: 20000000">
 
             <button type="submit">계산하기</button>
         </form>
 
         <div id="result"></div>
+        <button onclick="toggleLanguage()">Switch to English</button>
     </div>
 
     <script>
+        const taxBrackets = [
+            { limit: 100000000, rate: 10, deduction: 0 },
+            { limit: 500000000, rate: 20, deduction: 10000000 },
+            { limit: 1000000000, rate: 30, deduction: 60000000 },
+            { limit: 3000000000, rate: 40, deduction: 160000000 },
+            { limit: Infinity, rate: 50, deduction: 460000000 }
+        ];
+
         document.getElementById('taxForm').onsubmit = function(e) {
-            e.preventDefault(); // 폼 제출 동작 막기
+            e.preventDefault();
 
-            const giftAmount = parseInt(document.getElementById('giftAmount').value);
-            const exemptionLimit = parseInt(document.getElementById('relationship').value);
-            const taxRate = 10; // 세율 10%
+            const giftAmount = parseInt(document.getElementById('giftAmount').value) || 0;
+            const exemptionLimit = parseInt(document.getElementById('relationship').value) || 0;
+            const previousGift = parseInt(document.getElementById('previousGift').value) || 0;
 
-            const taxableAmount = Math.max(giftAmount - exemptionLimit, 0);
-            const giftTax = taxableAmount * (taxRate / 100);
+            const totalTaxable = Math.max(giftAmount + previousGift - exemptionLimit, 0);
 
-            document.getElementById('result').innerText = 
-                `최종 증여세액은 ${giftTax.toLocaleString()}원입니다.`;
+            let tax = 0;
+            for (let bracket of taxBrackets) {
+                if (totalTaxable > bracket.limit) {
+                    tax += (bracket.limit - (taxBrackets[taxBrackets.indexOf(bracket) - 1]?.limit || 0)) * (bracket.rate / 100);
+                } else {
+                    tax += (totalTaxable - (taxBrackets[taxBrackets.indexOf(bracket) - 1]?.limit || 0)) * (bracket.rate / 100);
+                    tax -= bracket.deduction;
+                    break;
+                }
+            }
+
+            document.getElementById('result').innerText = `최종 증여세액은 ${Math.max(tax, 0).toLocaleString()}원입니다.`;
         };
+
+        function toggleLanguage() {
+            const title = document.getElementById('title');
+            const buttonText = document.querySelector('button[onclick="toggleLanguage()"]');
+            if (title.innerText.includes('증여세')) {
+                title.innerText = 'Gift Tax Calculator (2024)';
+                buttonText.innerText = '한국어로 전환';
+            } else {
+                title.innerText = '증여세 계산기 (2024년 기준)';
+                buttonText.innerText = 'Switch to English';
+            }
+        }
     </script>
 </body>
 </html>
