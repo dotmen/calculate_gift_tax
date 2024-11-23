@@ -4,47 +4,119 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>증여세 계산기 (2024년 기준)</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        form label {
+            display: block;
+            margin: 10px 0 5px;
+            width: 100%;
+            text-align: left;
+        }
+
+        form input, form select, button {
+            width: 95%;
+            max-width: 400px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            border: none;
+            padding: 10px;
+            font-size: 14px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+
+        #results {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9f5ff;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+            color: #333;
+        }
+
+        #resultMessage {
+            text-align: center;
+            font-size: 14px;
+            color: #007bff;
+            margin-top: 15px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>증여세 계산기 (2024년 기준)</h2>
-        <form>
+        <form id="giftTaxForm">
             <label for="assetType">재산 유형:</label>
-            <select id="assetType">
-                <option value="cash">현금</option>
-                <option value="realEstate">부동산</option>
-                <option value="stocks">주식</option>
+            <select id="assetType" name="assetType">
+                <option value="현금">현금</option>
+                <option value="부동산">부동산</option>
+                <option value="주식">주식</option>
             </select>
 
-            <div id="cashInput" class="conditional-input">
-                <label for="cashAmount">현금 금액 (원):</label>
-                <input type="text" id="cashAmount" placeholder="예: 50,000,000">
-            </div>
-
-            <div id="realEstateInput" class="conditional-input hidden">
-                <label for="realEstatePrice">부동산 공시가격 (원):</label>
-                <input type="text" id="realEstatePrice" placeholder="예: 300,000,000">
-            </div>
-
-            <div id="stockInput" class="conditional-input hidden">
-                <label for="stockPrice">주식 평가액 (원):</label>
-                <input type="text" id="stockPrice" placeholder="예: 100,000,000">
-            </div>
+            <label for="cashAmount">현금 금액 (원):</label>
+            <input type="text" id="cashAmount" placeholder="예: 50,000,000">
 
             <label for="relationship">관계:</label>
-            <select id="relationship">
-                <option value="1">직계비속(성년 자녀) - 공제 한도: 50,000,000원</option>
-                <option value="2">직계비속(미성년 자녀) - 공제 한도: 20,000,000원</option>
-                <option value="3">사위/며느리 - 공제 한도: 50,000,000원</option>
-                <option value="4">기타(친구, 친인척 등) - 공제 한도: 10,000,000원</option>
+            <select id="relationship" name="relationship">
+                <option value="직계비속">직계비속(성년 자녀) - 공제 한도: 50,000,000원</option>
+                <option value="직계비속미성년">직계비속(미성년 자녀) - 공제 한도: 20,000,000원</option>
+                <option value="사위며느리">사위/며느리 - 공제 한도: 10,000,000원</option>
+                <option value="기타">타인 - 공제 한도: 5,000,000원</option>
             </select>
 
-            <label>과거 증여 금액:</label>
-            <div id="pastGifts">
-                <input type="text" class="past-gift-input" placeholder="예: 10,000,000">
-            </div>
-            <button type="button" id="addPastGift">과거 증여 금액 추가</button>
+            <label for="previousGifts">과거 증여 금액:</label>
+            <input type="text" id="previousGifts" placeholder="예: 10,000,000">
+            <button type="button" id="addPreviousGift">과거 증여 금액 추가</button>
 
             <label for="giftDate">증여일:</label>
             <input type="date" id="giftDate">
@@ -54,14 +126,14 @@
             <input type="date" id="reportDate">
             <p class="info-text">신고일은 증여세 신고 접수일을 기준으로 입력하세요.</p>
 
-            <label for="reportDeadline">신고 기한:</label>
-            <select id="reportDeadline">
-                <option value="3">기본 (3개월)</option>
-                <option value="6">연장 (6개월)</option>
+            <label for="extension">신고 기한:</label>
+            <select id="extension" name="extension">
+                <option value="기본">기본 (3개월)</option>
+                <option value="연장">연장 (6개월)</option>
             </select>
             <p class="info-text">신고 기한이 연장되는 경우(부동산, 주식 등), 연장을 선택하세요.</p>
 
-            <button type="button" id="calculate" class="blue-button">계산하기</button>
+            <button type="button" id="calculateTax">계산하기</button>
         </form>
 
         <div id="results" class="hidden">
@@ -71,6 +143,7 @@
             <p>취득세: <span id="acquisitionTax">0</span>원</p>
             <p>지방교육세: <span id="localEducationTax">0</span>원</p>
             <p>최종 납부세액: <span id="totalTax">0</span>원</p>
+            <p id="resultMessage">결과가 여기에 표시됩니다.</p>
         </div>
     </div>
     <script src="script.js"></script>
