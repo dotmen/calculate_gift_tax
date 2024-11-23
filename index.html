@@ -64,14 +64,28 @@
             margin-top: 15px;
             text-align: left;
         }
+
+        small {
+            display: block;
+            color: gray;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="calculator">
         <h1 id="title">증여세 계산기 (2024년 기준)</h1>
         <form id="taxForm">
-            <label for="giftAmount">증여 금액 (원):</label>
-            <input type="text" id="giftAmount" placeholder="예: 100,000,000" required>
+            <!-- 재산 유형 -->
+            <label for="assetType">재산 유형:</label>
+            <select id="assetType">
+                <option value="cash">현금</option>
+                <option value="realEstate">부동산</option>
+                <option value="stock">주식</option>
+            </select>
+
+            <!-- 추가 필드 -->
+            <div id="additionalFields"></div>
 
             <label for="relationship">관계:</label>
             <select id="relationship">
@@ -82,11 +96,17 @@
                 <option value="10000000" data-period="0">타인, 친구, 친인척 등 - 공제 한도: 10,000,000원</option>
             </select>
 
+            <label>과거 증여 금액:</label>
+            <div id="previousGifts"></div>
+            <button type="button" id="addGiftButton">과거 증여 금액 추가</button>
+
             <label for="giftDate">증여일:</label>
             <input type="date" id="giftDate">
+            <small>증여일은 증여 계약서 서명일 또는 재산 이전일입니다.</small>
 
             <label for="reportDate">신고일:</label>
             <input type="date" id="reportDate">
+            <small>신고일은 증여세 신고 접수일을 기준으로 입력하세요.</small>
 
             <button type="submit" id="button-calculate">계산하기</button>
         </form>
@@ -103,20 +123,80 @@
             { limit: Infinity, rate: 50, deduction: 460000000 }
         ];
 
+        // 재산 유형 선택 시 추가 필드 표시
+        document.getElementById('assetType').addEventListener('change', function () {
+            const selectedType = this.value;
+            const additionalFields = document.getElementById('additionalFields');
+            additionalFields.innerHTML = '';
+
+            if (selectedType === 'realEstate') {
+                additionalFields.innerHTML = `
+                    <label for="realEstateValue">부동산 공시가격 (원):</label>
+                    <input type="text" id="realEstateValue" placeholder="예: 500,000,000">
+                `;
+            } else if (selectedType === 'stock') {
+                additionalFields.innerHTML = `
+                    <label for="stockQuantity">주식 수량:</label>
+                    <input type="number" id="stockQuantity" placeholder="예: 100">
+                    <label for="stockPrice">증여일 기준 주가 (원):</label>
+                    <input type="text" id="stockPrice" placeholder="예: 50,000">
+                `;
+            }
+        });
+
+        // 과거 증여 금액 추가
+        document.getElementById('addGiftButton').addEventListener('click', function () {
+            const previousGifts = document.getElementById('previousGifts');
+            const inputField = document.createElement('input');
+            inputField.type = 'text';
+            inputField.placeholder = '예: 10,000,000';
+            inputField.style.marginBottom = "10px";
+            previousGifts.appendChild(inputField);
+        });
+
+        // 과거 증여 금액 합산
+        function getTotalPreviousGifts() {
+            const inputs = document.querySelectorAll('#previousGifts input');
+            let total = 0;
+            inputs.forEach(input => {
+                total += parseInt(input.value.replace(/,/g, '')) || 0;
+            });
+            return total;
+        }
+
+        // 누진세 계산
+        function calculateProgressiveTax(totalTaxable) {
+            let tax = 0;
+
+            for (let i = 0; i < taxBrackets.length; i++) {
+                const bracket = taxBrackets[i];
+                const prevLimit = taxBrackets[i - 1]?.limit || 0;
+
+                if (totalTaxable > bracket.limit) {
+                    tax += (bracket.limit - prevLimit) * (bracket.rate / 100);
+                } else {
+                    tax += (totalTaxable - prevLimit) * (bracket.rate / 100);
+                    tax -= bracket.deduction;
+                    break;
+                }
+            }
+
+            return Math.max(tax, 0);
+        }
+
         // 가산세 계산
         function calculatePenalty(tax) {
             const giftDateInput = document.getElementById('giftDate').value;
             const reportDateInput = document.getElementById('reportDate').value;
 
-            // 날짜가 입력되지 않은 경우 기본값 반환
-            if (!giftDateInput || !reportDateInput) {
+            if (!giftDateInput) {
+                alert("증여일을 입력해 주세요. (증여 계약서의 서명일 또는 재산 이전일)");
                 return 0;
             }
 
             const giftDate = new Date(giftDateInput);
-            const reportDate = new Date(reportDateInput);
+            const reportDate = reportDateInput ? new Date(reportDateInput) : new Date();
 
-            // 날짜 형식이 올바르지 않은 경우 처리
             if (isNaN(giftDate) || isNaN(reportDate)) {
                 alert("올바른 날짜를 입력해 주세요.");
                 return 0;
@@ -125,11 +205,11 @@
             const diffInDays = (reportDate - giftDate) / (1000 * 60 * 60 * 24);
 
             if (diffInDays > 90 && diffInDays <= 180) {
-                return tax * 0.1; // 10% 가산세
+                return tax * 0.1;
             } else if (diffInDays > 180) {
-                return tax * 0.2; // 20% 가산세
+                return tax * 0.2;
             }
-            return 0; // 신고기한 내 신고
+            return 0;
         }
 
         // 증여세 계산
@@ -140,19 +220,10 @@
             const exemption = parseInt(relationship.value) || 0;
 
             const giftAmount = parseInt(document.getElementById('giftAmount').value.replace(/,/g, '')) || 0;
-            const totalTaxable = Math.max(giftAmount - exemption, 0);
+            const previousGift = getTotalPreviousGifts();
+            const totalTaxable = Math.max(giftAmount + previousGift - exemption, 0);
 
-            let tax = 0;
-            for (let bracket of taxBrackets) {
-                if (totalTaxable > bracket.limit) {
-                    tax += (bracket.limit - (taxBrackets[taxBrackets.indexOf(bracket) - 1]?.limit || 0)) * (bracket.rate / 100);
-                } else {
-                    tax += (totalTaxable - (taxBrackets[taxBrackets.indexOf(bracket) - 1]?.limit || 0)) * (bracket.rate / 100);
-                    tax -= bracket.deduction;
-                    break;
-                }
-            }
-
+            const tax = calculateProgressiveTax(totalTaxable);
             const penalty = calculatePenalty(tax);
             const totalTax = tax + penalty;
 
@@ -162,6 +233,10 @@
                 최종 납부세액: ${Math.max(totalTax, 0).toLocaleString()}원
             `;
         };
+
+        // 기본값: 오늘 날짜 설정
+        document.getElementById('giftDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
     </script>
 </body>
 </html>
