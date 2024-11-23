@@ -11,6 +11,14 @@ const taxBrackets = [
 const acquisitionTaxRate = 3.5 / 100; // 취득세율
 const educationTaxRate = 10 / 100; // 지방교육세율
 
+// 과거 증여 합산 기준 (관계별)
+const relationshipPeriods = {
+    child: 10, // 직계비속: 10년
+    spouse: 10, // 배우자: 10년
+    inLaw: 5, // 사위/며느리: 5년
+    other: 0 // 타인: 합산 없음
+};
+
 // 증여세 계산 함수
 function calculateGiftTax(taxableAmount) {
     let tax = 0;
@@ -56,6 +64,24 @@ function calculateLocalTaxes(realEstateValue) {
     };
 }
 
+// 과거 증여 금액 합산 함수
+function calculatePastGifts(pastGiftInputs, relationship, currentDate) {
+    const periodLimit = relationshipPeriods[relationship] || 0; // 관계에 따른 합산 기간(년)
+    const limitDate = new Date(currentDate);
+    limitDate.setFullYear(limitDate.getFullYear() - periodLimit);
+
+    let totalPastGifts = 0;
+
+    pastGiftInputs.forEach(input => {
+        const giftDate = new Date(input.date);
+        if (giftDate >= limitDate) {
+            totalPastGifts += parseInt(input.amount || 0);
+        }
+    });
+
+    return totalPastGifts;
+}
+
 // 재산 유형 변경 시 신고 기한 기본값 설정
 document.getElementById('assetType').addEventListener('change', function () {
     const selectedType = this.value;
@@ -97,11 +123,12 @@ document.getElementById('assetType').addEventListener('change', function () {
 // 과거 증여 금액 추가
 document.getElementById('addGiftButton').addEventListener('click', function () {
     const previousGifts = document.getElementById('previousGifts');
-    const inputField = document.createElement('input');
-    inputField.type = 'text';
-    inputField.placeholder = '예: 10,000,000';
-    inputField.style.marginBottom = "10px";
-    previousGifts.appendChild(inputField);
+    const inputWrapper = document.createElement('div');
+    inputWrapper.innerHTML = `
+        <input type="date" placeholder="증여일 (연도-월-일)">
+        <input type="text" placeholder="금액 (원)">
+    `;
+    previousGifts.appendChild(inputWrapper);
 });
 
 // 결과 출력
@@ -122,38 +149,20 @@ document.getElementById('taxForm').onsubmit = function (e) {
         giftAmount = stockQuantity * stockPrice;
     }
 
-    // 과세 표준 계산
-    const exemptionLimit = {
-        child: 50000000,
-        spouse: 600000000,
-        inLaw: 50000000,
-        other: 10000000
-    }[document.getElementById('relationship').value] || 0;
+    // 관계에 따른 과거 증여 합산
+    const currentDate = new Date();
+    const relationship = document.getElementById('relationship').value;
+    const pastGiftInputs = Array.from(document.getElementById('previousGifts').children).map(inputWrapper => ({
+        date: inputWrapper.querySelector('input[type="date"]')?.value,
+        amount: inputWrapper.querySelector('input[type="text"]')?.value
+    }));
 
-    const taxableAmount = Math.max(giftAmount - exemptionLimit, 0);
-
-    // 증여세 계산
-    const giftTax = calculateGiftTax(taxableAmount);
-
-    // 가산세 계산
-    const giftDate = document.getElementById('giftDate')?.value;
-    const submissionDate = document.getElementById('submissionDate')?.value;
-    const extendedPeriod = document.getElementById('extendedPeriod').value === "true";
-    const latePenalty = calculateLatePenalty(submissionDate, giftDate, giftTax, extendedPeriod);
-
-    // 취득세 및 지방세 계산 (부동산만 해당)
-    let localTaxes = { acquisitionTax: 0, educationTax: 0 };
-    if (selectedType === 'realEstate') {
-        localTaxes = calculateLocalTaxes(giftAmount);
-    }
+    const pastGifts = calculatePastGifts(pastGiftInputs, relationship, currentDate);
+    const taxableAmount = Math.max(giftAmount + pastGifts - (relationshipPeriods[relationship] || 0), 0);
 
     // 결과 표시
     const resultDiv = document.getElementById('result');
     resultDiv.innerHTML = `
-        <p><strong>증여세:</strong> ${giftTax.toLocaleString()}원</p>
-        <p><strong>가산세:</strong> ${latePenalty.toLocaleString()}원</p>
-        <p><strong>취득세:</strong> ${localTaxes.acquisitionTax.toLocaleString()}원</p>
-        <p><strong>지방교육세:</strong> ${localTaxes.educationTax.toLocaleString()}원</p>
-        <p><strong>최종 납부세액:</strong> ${(giftTax + latePenalty + localTaxes.acquisitionTax + localTaxes.educationTax).toLocaleString()}원</p>
+        <p><strong>증여세:</strong> ${calculateGiftTax(taxableAmount).toLocaleString()}원</p>
     `;
 };
