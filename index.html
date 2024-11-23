@@ -1,62 +1,42 @@
-def calculate_gift_tax(gift_amount, exemption_limit, tax_rate):
-    """
-    증여세 계산 함수 (2024년 기준)
-
-    Parameters:
-        gift_amount (int): 증여 금액
-        exemption_limit (int): 공제 한도
-        tax_rate (float): 세율 (%)
-
-    Returns:
-        int: 최종 증여세액
-    """
-    # 공제 후 과세 표준 계산
-    taxable_amount = max(gift_amount - exemption_limit, 0)
-    
-    # 증여세 계산
-    gift_tax = taxable_amount * (tax_rate / 100)
-    
-    return round(gift_tax)
-
-def get_exemption_limit(relationship):
-    """
-    관계에 따라 공제 한도를 반환하는 함수 (2024년 기준)
-    """
-    if relationship == "1":
-        return 50000000  # 직계비속 (자녀)
-    elif relationship == "2":
-        return 600000000  # 배우자
-    elif relationship == "3":
-        return 10000000  # 기타
-    else:
-        print("잘못된 선택입니다. 기본값 0원이 적용됩니다.")
-        return 0
-
-def main():
-    print("증여세 계산기 (2024년 기준)")
-    print("아래에서 증여받는 사람과의 관계를 선택하세요:")
-    print("1. 직계비속(자녀)\n2. 배우자\n3. 기타(친구 등)")
-    
-    # 관계 선택
-    relationship = input("선택 번호를 입력하세요 (1, 2, 3): ")
-    exemption_limit = get_exemption_limit(relationship)
-    
-    # 사용자 입력 받기
-    try:
-        gift_amount = int(input("\n증여 금액을 입력하세요 (예: 100000000): "))
-        tax_rate = 10  # 기본 세율 (1억 원 이하, 2024년 기준)
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>증여세 계산기</title>
+</head>
+<body>
+    <h1>증여세 계산기 (2024년 기준)</h1>
+    <form id="taxForm">
+        <label for="giftAmount">증여 금액 (원):</label>
+        <input type="number" id="giftAmount" placeholder="예: 100000000" required><br><br>
         
-        # 계산 실행
-        gift_tax = calculate_gift_tax(gift_amount, exemption_limit, tax_rate)
-        
-        # 결과 출력
-        print("\n=== 계산 결과 ===")
-        print(f"증여 금액: {gift_amount:,} 원")
-        print(f"공제 한도 (2024년 기준): {exemption_limit:,} 원")
-        print(f"공제 후 과세 표준: {max(gift_amount - exemption_limit, 0):,} 원")
-        print(f"최종 증여세액: {gift_tax:,} 원")
-    except ValueError:
-        print("잘못된 입력입니다. 숫자만 입력하세요.")
+        <label for="relationship">관계:</label>
+        <select id="relationship">
+            <option value="50000000">직계비속(자녀) - 공제 한도: 50,000,000원</option>
+            <option value="600000000">배우자 - 공제 한도: 600,000,000원</option>
+            <option value="10000000">기타 - 공제 한도: 10,000,000원</option>
+        </select><br><br>
 
-if __name__ == "__main__":
-    main()
+        <button type="submit">계산하기</button>
+    </form>
+
+    <h2 id="result"></h2>
+
+    <script>
+        document.getElementById('taxForm').onsubmit = function(e) {
+            e.preventDefault(); // 폼 제출 동작 막기
+
+            const giftAmount = parseInt(document.getElementById('giftAmount').value);
+            const exemptionLimit = parseInt(document.getElementById('relationship').value);
+            const taxRate = 10; // 세율 10%
+
+            const taxableAmount = Math.max(giftAmount - exemptionLimit, 0);
+            const giftTax = taxableAmount * (taxRate / 100);
+
+            document.getElementById('result').innerText = 
+                `최종 증여세액은 ${giftTax.toLocaleString()}원입니다.`;
+        };
+    </script>
+</body>
+</html>
