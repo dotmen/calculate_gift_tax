@@ -69,10 +69,10 @@
     <div class="calculator">
         <h1 id="title">증여세 계산기 (2024년 기준)</h1>
         <form id="taxForm">
-            <label for="giftAmount">증여 금액 (원):</label>
+            <label for="giftAmount" id="label-giftAmount">증여 금액 (원):</label>
             <input type="number" id="giftAmount" placeholder="예: 100000000" required>
 
-            <label for="relationship">관계:</label>
+            <label for="relationship" id="label-relationship">관계:</label>
             <select id="relationship">
                 <option value="50000000">직계비속(자녀) - 공제 한도: 50,000,000원</option>
                 <option value="600000000">배우자 - 공제 한도: 600,000,000원</option>
@@ -80,17 +80,52 @@
                 <option value="20000000">미성년자(자녀) - 공제 한도: 20,000,000원</option>
             </select>
 
-            <label for="previousGift">10년 내 증여 금액 (원):</label>
+            <label for="previousGift" id="label-previousGift">10년 내 증여 금액 (원):</label>
             <input type="number" id="previousGift" placeholder="예: 20000000">
 
-            <button type="submit">계산하기</button>
+            <button type="submit" id="button-calculate">계산하기</button>
         </form>
 
         <div id="result"></div>
-        <button onclick="toggleLanguage()">Switch to English</button>
+        <button onclick="toggleLanguage()" id="button-toggle-language">Switch to English</button>
     </div>
 
     <script>
+        const languages = {
+            ko: {
+                title: "증여세 계산기 (2024년 기준)",
+                giftAmount: "증여 금액 (원):",
+                relationship: "관계:",
+                previousGift: "10년 내 증여 금액 (원):",
+                calculate: "계산하기",
+                result: "최종 증여세액은 ",
+                toggleLanguage: "Switch to English"
+            },
+            en: {
+                title: "Gift Tax Calculator (2024)",
+                giftAmount: "Gift Amount (KRW):",
+                relationship: "Relationship:",
+                previousGift: "Gifted Amount in Last 10 Years (KRW):",
+                calculate: "Calculate",
+                result: "The final gift tax is ",
+                toggleLanguage: "한국어로 전환"
+            }
+        };
+
+        let currentLanguage = "ko";
+
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === "ko" ? "en" : "ko";
+            const lang = languages[currentLanguage];
+
+            document.getElementById('title').innerText = lang.title;
+            document.getElementById('label-giftAmount').innerText = lang.giftAmount;
+            document.getElementById('label-relationship').innerText = lang.relationship;
+            document.getElementById('label-previousGift').innerText = lang.previousGift;
+            document.getElementById('button-calculate').innerText = lang.calculate;
+            document.getElementById('button-toggle-language').innerText = lang.toggleLanguage;
+        }
+
         const taxBrackets = [
             { limit: 100000000, rate: 10, deduction: 0 },
             { limit: 500000000, rate: 20, deduction: 10000000 },
@@ -119,20 +154,9 @@
                 }
             }
 
-            document.getElementById('result').innerText = `최종 증여세액은 ${Math.max(tax, 0).toLocaleString()}원입니다.`;
+            const resultText = `${languages[currentLanguage].result}${Math.max(tax, 0).toLocaleString()} KRW.`;
+            document.getElementById('result').innerText = resultText;
         };
-
-        function toggleLanguage() {
-            const title = document.getElementById('title');
-            const buttonText = document.querySelector('button[onclick="toggleLanguage()"]');
-            if (title.innerText.includes('증여세')) {
-                title.innerText = 'Gift Tax Calculator (2024)';
-                buttonText.innerText = '한국어로 전환';
-            } else {
-                title.innerText = '증여세 계산기 (2024년 기준)';
-                buttonText.innerText = 'Switch to English';
-            }
-        }
     </script>
 </body>
 </html>
