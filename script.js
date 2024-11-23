@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 콤마 추가 함수
     function formatNumberWithCommas(value) {
+        if (isNaN(value)) return value; // 숫자가 아니면 그대로 반환
         return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }
 
@@ -26,9 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function addCommaInputListener(inputId) {
         const input = document.getElementById(inputId);
         input.addEventListener('input', () => {
+            const cursorPosition = input.selectionStart;
             const unformattedValue = removeCommas(input.value);
             if (!isNaN(unformattedValue)) {
-                input.value = formatNumberWithCommas(unformattedValue);
+                const formattedValue = formatNumberWithCommas(unformattedValue);
+                input.value = formattedValue;
+
+                // 커서 위치를 유지
+                input.selectionStart = input.selectionEnd = cursorPosition + (formattedValue.length - unformattedValue.length);
             }
         });
     }
