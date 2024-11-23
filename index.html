@@ -105,8 +105,23 @@
 
         // 가산세 계산
         function calculatePenalty(tax) {
-            const giftDate = new Date(document.getElementById('giftDate').value);
-            const reportDate = new Date(document.getElementById('reportDate').value);
+            const giftDateInput = document.getElementById('giftDate').value;
+            const reportDateInput = document.getElementById('reportDate').value;
+
+            // 날짜가 입력되지 않은 경우 기본값 반환
+            if (!giftDateInput || !reportDateInput) {
+                return 0;
+            }
+
+            const giftDate = new Date(giftDateInput);
+            const reportDate = new Date(reportDateInput);
+
+            // 날짜 형식이 올바르지 않은 경우 처리
+            if (isNaN(giftDate) || isNaN(reportDate)) {
+                alert("올바른 날짜를 입력해 주세요.");
+                return 0;
+            }
+
             const diffInDays = (reportDate - giftDate) / (1000 * 60 * 60 * 24);
 
             if (diffInDays > 90 && diffInDays <= 180) {
