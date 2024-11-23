@@ -1,14 +1,26 @@
 // 숫자 포맷(쉼표 추가) 함수
 function formatNumber(input) {
-    const value = input.value.replace(/,/g, '');
-    if (!isNaN(value)) {
-        input.value = parseInt(value, 10).toLocaleString();
+    const value = input.value.replace(/,/g, ''); // 기존 쉼표 제거
+    if (!isNaN(value) && value !== "") {
+        input.value = parseInt(value, 10).toLocaleString(); // 쉼표 추가
+    } else {
+        input.value = ""; // 숫자가 아니면 빈칸 유지
     }
 }
 
 // 숫자에서 쉼표 제거 후 계산
 function parseInput(value) {
-    return parseInt(value.replace(/,/g, ''), 10) || 0;
+    return parseInt(value.replace(/,/g, ''), 10) || 0; // 쉼표 제거 후 숫자로 변환
+}
+
+// 현금 금액 입력란에 쉼표 추가
+const cashAmountInput = document.getElementById('cashAmount');
+if (cashAmountInput) {
+    cashAmountInput.addEventListener('input', function () {
+        formatNumber(this);
+    });
+} else {
+    console.error("cashAmount 입력란을 찾을 수 없습니다.");
 }
 
 // 재산 유형 선택 시 입력란 표시
@@ -17,11 +29,6 @@ document.getElementById('assetType').addEventListener('change', function () {
     const selectedInput = this.value === 'cash' ? 'cashInput' :
                           this.value === 'realEstate' ? 'realEstateInput' : 'stockInput';
     document.getElementById(selectedInput).classList.remove('hidden');
-});
-
-// 현금 금액 입력란에 쉼표 추가
-document.getElementById('cashAmount').addEventListener('input', function () {
-    formatNumber(this);
 });
 
 // 과거 증여 금액 추가
