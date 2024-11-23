@@ -6,7 +6,7 @@ body {
 }
 
 .container {
-    max-width: 600px; /* 컨테이너 크기 조정 */
+    max-width: 600px;
     margin: 50px auto;
     background: #fff;
     padding: 20px;
@@ -25,8 +25,7 @@ form label {
 }
 
 form input, form select, button {
-    width: 95%; /* 모든 입력 필드와 버튼의 폭을 동일하게 설정 */
-    max-width: 400px; /* 최대 폭을 설정 */
+    width: calc(100% - 20px); /* 입력칸과 버튼 길이 통일 */
     padding: 10px;
     margin-bottom: 15px;
     border: 1px solid #ddd;
