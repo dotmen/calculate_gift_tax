@@ -38,11 +38,12 @@
         }
 
         .calculator input, .calculator select, .calculator button {
-            width: 100%;
+            width: calc(100% - 20px);
             padding: 10px;
             margin-bottom: 15px;
             border: 1px solid #ddd;
             border-radius: 5px;
+            box-sizing: border-box;
         }
 
         .calculator button {
@@ -69,63 +70,45 @@
     <div class="calculator">
         <h1 id="title">증여세 계산기 (2024년 기준)</h1>
         <form id="taxForm">
-            <label for="giftAmount" id="label-giftAmount">증여 금액 (원):</label>
-            <input type="text" id="giftAmount" placeholder="예: 100,000,000" required>
-
-            <label for="relationship" id="label-relationship">관계:</label>
-            <select id="relationship">
-                <option value="50000000">직계비속(자녀) - 공제 한도: 50,000,000원</option>
-                <option value="600000000">배우자 - 공제 한도: 600,000,000원</option>
-                <option value="10000000">기타(친구, 형제 등) - 공제 한도: 10,000,000원</option>
-                <option value="20000000">미성년자(자녀) - 공제 한도: 20,000,000원</option>
+            <label for="assetType">재산 유형:</label>
+            <select id="assetType">
+                <option value="cash">현금</option>
+                <option value="realEstate">부동산</option>
+                <option value="stock">주식</option>
             </select>
 
-            <label for="previousGift" id="label-previousGift">10년 내 증여 금액 (원):</label>
-            <input type="text" id="previousGift" placeholder="예: 20,000,000">
+            <div id="additionalFields">
+                <!-- 기본 추가 필드 -->
+                <label for="realEstateValue">부동산 공시가격 (원):</label>
+                <input type="text" id="realEstateValue" placeholder="예: 500,000,000">
+            </div>
+
+            <label for="relationship">관계:</label>
+            <select id="relationship">
+                <option value="50000000" data-period="10">직계비속(성년 자녀) - 공제 한도: 50,000,000원</option>
+                <option value="20000000" data-period="10">직계비속(미성년 자녀) - 공제 한도: 20,000,000원</option>
+                <option value="600000000" data-period="10">배우자 - 공제 한도: 600,000,000원</option>
+                <option value="500000" data-period="5">며느리/사위 - 공제 한도: 500,000원</option>
+                <option value="10000000" data-period="0">타인, 친구, 친인척 등 - 공제 한도: 10,000,000원</option>
+            </select>
+
+            <label>과거 증여 금액:</label>
+            <div id="previousGifts"></div>
+            <button type="button" id="addGiftButton">과거 증여 금액 추가</button>
+
+            <label for="giftDate">증여일:</label>
+            <input type="date" id="giftDate">
+
+            <label for="reportDate">신고일:</label>
+            <input type="date" id="reportDate">
 
             <button type="submit" id="button-calculate">계산하기</button>
         </form>
 
         <div id="result"></div>
-        <button onclick="toggleLanguage()" id="button-toggle-language">Switch to English</button>
     </div>
 
     <script>
-        const languages = {
-            ko: {
-                title: "증여세 계산기 (2024년 기준)",
-                giftAmount: "증여 금액 (원):",
-                relationship: "관계:",
-                previousGift: "10년 내 증여 금액 (원):",
-                calculate: "계산하기",
-                result: "최종 증여세액은 ",
-                toggleLanguage: "Switch to English"
-            },
-            en: {
-                title: "Gift Tax Calculator (2024)",
-                giftAmount: "Gift Amount (KRW):",
-                relationship: "Relationship:",
-                previousGift: "Gifted Amount in Last 10 Years (KRW):",
-                calculate: "Calculate",
-                result: "The final gift tax is ",
-                toggleLanguage: "한국어로 전환"
-            }
-        };
-
-        let currentLanguage = "ko";
-
-        function toggleLanguage() {
-            currentLanguage = currentLanguage === "ko" ? "en" : "ko";
-            const lang = languages[currentLanguage];
-
-            document.getElementById('title').innerText = lang.title;
-            document.getElementById('label-giftAmount').innerText = lang.giftAmount;
-            document.getElementById('label-relationship').innerText = lang.relationship;
-            document.getElementById('label-previousGift').innerText = lang.previousGift;
-            document.getElementById('button-calculate').innerText = lang.calculate;
-            document.getElementById('button-toggle-language').innerText = lang.toggleLanguage;
-        }
-
         const taxBrackets = [
             { limit: 100000000, rate: 10, deduction: 0 },
             { limit: 500000000, rate: 20, deduction: 10000000 },
@@ -134,32 +117,84 @@
             { limit: Infinity, rate: 50, deduction: 460000000 }
         ];
 
-        // 입력 필드에 쉼표 추가 함수
-        function formatNumberInput(inputElement) {
-            const value = inputElement.value.replace(/,/g, '');
-            if (!isNaN(value) && value !== '') {
-                inputElement.value = parseInt(value, 10).toLocaleString();
-            } else {
-                inputElement.value = '';
+        // 재산 유형 선택 시 추가 필드 변경
+        document.getElementById('assetType').addEventListener('change', function () {
+            const selectedType = this.value;
+            const additionalFields = document.getElementById('additionalFields');
+            additionalFields.innerHTML = ''; // 초기화
+
+            if (selectedType === 'realEstate') {
+                additionalFields.innerHTML = `
+                    <label for="realEstateValue">부동산 공시가격 (원):</label>
+                    <input type="text" id="realEstateValue" placeholder="예: 500,000,000">
+                `;
+            } else if (selectedType === 'stock') {
+                additionalFields.innerHTML = `
+                    <label for="stockQuantity">주식 수량:</label>
+                    <input type="number" id="stockQuantity" placeholder="예: 100">
+                    <label for="stockPrice">증여일 기준 주가 (원):</label>
+                    <input type="text" id="stockPrice" placeholder="예: 50,000">
+                `;
             }
+        });
+
+        // 과거 증여 금액 추가
+        document.getElementById('addGiftButton').addEventListener('click', function () {
+            const previousGifts = document.getElementById('previousGifts');
+            const inputField = document.createElement('input');
+            inputField.type = 'text';
+            inputField.placeholder = '예: 10,000,000';
+            inputField.style.marginBottom = "10px";
+            previousGifts.appendChild(inputField);
+        });
+
+        // 과거 증여 금액 합산
+        function getTotalPreviousGifts() {
+            const inputs = document.querySelectorAll('#previousGifts input');
+            let total = 0;
+            inputs.forEach(input => {
+                total += parseInt(input.value.replace(/,/g, '')) || 0;
+            });
+            return total;
         }
 
-        document.getElementById('giftAmount').addEventListener('input', function () {
-            formatNumberInput(this);
-        });
+        // 가산세 계산
+        function calculatePenalty(tax) {
+            const giftDateInput = document.getElementById('giftDate').value;
+            const reportDateInput = document.getElementById('reportDate').value;
 
-        document.getElementById('previousGift').addEventListener('input', function () {
-            formatNumberInput(this);
-        });
+            if (!giftDateInput || !reportDateInput) {
+                return 0;
+            }
 
+            const giftDate = new Date(giftDateInput);
+            const reportDate = new Date(reportDateInput);
+
+            if (isNaN(giftDate) || isNaN(reportDate)) {
+                alert("올바른 날짜를 입력해 주세요.");
+                return 0;
+            }
+
+            const diffInDays = (reportDate - giftDate) / (1000 * 60 * 60 * 24);
+
+            if (diffInDays > 90 && diffInDays <= 180) {
+                return tax * 0.1;
+            } else if (diffInDays > 180) {
+                return tax * 0.2;
+            }
+            return 0;
+        }
+
+        // 증여세 계산
         document.getElementById('taxForm').onsubmit = function (e) {
             e.preventDefault();
 
-            const giftAmount = parseInt(document.getElementById('giftAmount').value.replace(/,/g, '')) || 0;
-            const exemptionLimit = parseInt(document.getElementById('relationship').value) || 0;
-            const previousGift = parseInt(document.getElementById('previousGift').value.replace(/,/g, '')) || 0;
+            const relationship = document.getElementById('relationship').options[document.getElementById('relationship').selectedIndex];
+            const exemption = parseInt(relationship.value) || 0;
 
-            const totalTaxable = Math.max(giftAmount + previousGift - exemptionLimit, 0);
+            const giftAmount = parseInt(document.getElementById('giftAmount').value.replace(/,/g, '')) || 0;
+            const previousGift = getTotalPreviousGifts();
+            const totalTaxable = Math.max(giftAmount + previousGift - exemption, 0);
 
             let tax = 0;
             for (let bracket of taxBrackets) {
@@ -172,9 +207,8 @@
                 }
             }
 
-            const resultText = `${languages[currentLanguage].result}${Math.max(tax, 0).toLocaleString()} KRW.`;
-            document.getElementById('result').innerText = resultText;
-        };
-    </script>
-</body>
-</html>
+            const penalty = calculatePenalty(tax);
+            const totalTax = tax + penalty;
+
+            document.getElementById('result').innerText = `
+                증
