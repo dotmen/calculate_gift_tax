@@ -1,239 +1,30 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <link rel="stylesheet" href="style.css">
+<h1>증여세 계산기</h1>
+<form id="gift-tax-form">
+    <label>이번 증여 금액 (₩):</label>
+    <input type="number" id="current-gift" required>
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>증여세 계산기 (2024년 기준)</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
+    <label>과거 증여 금액 (₩):</label>
+    <input type="number" id="past-gift" required>
 
-        .calculator {
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 400px;
-            padding: 20px;
-            text-align: center;
-        }
+    <label>증여자와의 관계:</label>
+    <select id="relationship">
+        <option value="child">자녀</option>
+        <option value="spouse">배우자</option>
+        <option value="in_law">사위/며느리</option>
+        <option value="other_relative">기타 친족</option>
+        <option value="others">기타</option>
+    </select>
 
-        .calculator h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
+    <label>증여일:</label>
+    <input type="date" id="gift-date" required>
 
-        .calculator label {
-            display: block;
-            margin-bottom: 5px;
-            text-align: left;
-            font-weight: bold;
-        }
+    <label>신고일:</label>
+    <input type="date" id="report-date" required>
 
-        .calculator input, .calculator select, .calculator button {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
+    <label>가산세 계산 포함:</label>
+    <input type="checkbox" id="include-penalty">
 
-        .calculator button {
-            background-color: #4CAF50;
-            color: white;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-        }
+    <button type="submit">계산하기</button>
+</form>
 
-        .calculator button:hover {
-            background-color: #45a049;
-        }
-
-        #result {
-            font-size: 16px;
-            color: #333;
-            margin-top: 20px;
-            text-align: left;
-        }
-    </style>
-</head>
-<body>
-    <div class="calculator">
-        <h1>증여세 계산기 (2024년 기준)</h1>
-        <form id="taxForm">
-            <!-- 재산 유형 -->
-            <label for="assetType">재산 유형:</label>
-            <select id="assetType">
-                <option value="cash">현금</option>
-                <option value="realEstate">부동산</option>
-                <option value="stock">주식</option>
-            </select>
-
-            <!-- 동적으로 렌더링될 추가 입력 필드 -->
-            <div id="additionalFields"></div>
-
-            <!-- 관계 -->
-            <label for="relationship">관계:</label>
-            <select id="relationship">
-                <option value="50000000">직계비속(성년 자녀) - 공제 한도: 50,000,000원</option>
-                <option value="20000000">직계비속(미성년 자녀) - 공제 한도: 20,000,000원</option>
-                <option value="600000000">배우자 - 공제 한도: 600,000,000원</option>
-                <option value="500000">며느리/사위 - 공제 한도: 500,000원</option>
-                <option value="10000000">타인, 친구, 친인척 등 - 공제 한도: 10,000,000원</option>
-            </select>
-
-            <!-- 과거 증여 금액 -->
-            <label>과거 증여 금액:</label>
-            <div id="previousGifts"></div>
-            <button type="button" id="addGiftButton">과거 증여 금액 추가</button>
-
-            <!-- 증여일 및 신고일 -->
-            <label for="giftDate">증여일:</label>
-            <input type="date" id="giftDate">
-            <label for="reportDate">신고일:</label>
-            <input type="date" id="reportDate">
-
-            <!-- 계산 버튼 -->
-            <button type="submit" id="button-calculate">계산하기</button>
-        </form>
-
-        <!-- 결과 출력 -->
-        <div id="result"></div>
-    </div>
-
-    <script>
-        const taxBrackets = [
-            { limit: 100000000, rate: 10, deduction: 0 },
-            { limit: 500000000, rate: 20, deduction: 10000000 },
-            { limit: 1000000000, rate: 30, deduction: 60000000 },
-            { limit: 3000000000, rate: 40, deduction: 160000000 },
-            { limit: Infinity, rate: 50, deduction: 460000000 }
-        ];
-
-        // 재산 유형에 따라 입력 필드 표시
-        document.getElementById('assetType').addEventListener('change', function () {
-            const selectedType = this.value;
-            const additionalFields = document.getElementById('additionalFields');
-            additionalFields.innerHTML = ''; // 초기화
-
-            if (selectedType === 'cash') {
-                additionalFields.innerHTML = `
-                    <label for="cashAmount">현금 금액 (원):</label>
-                    <input type="text" id="cashAmount" placeholder="예: 10,000,000">
-                `;
-            } else if (selectedType === 'realEstate') {
-                additionalFields.innerHTML = `
-                    <label for="realEstateValue">부동산 공시가격 (원):</label>
-                    <input type="text" id="realEstateValue" placeholder="예: 500,000,000">
-                `;
-            } else if (selectedType === 'stock') {
-                additionalFields.innerHTML = `
-                    <label for="stockQuantity">주식 수량:</label>
-                    <input type="number" id="stockQuantity" placeholder="예: 100">
-                    <label for="stockPrice">증여일 기준 주가 (원):</label>
-                    <input type="text" id="stockPrice" placeholder="예: 50,000">
-                `;
-            }
-        });
-
-        // 과거 증여 금액 추가
-        document.getElementById('addGiftButton').addEventListener('click', function () {
-            const previousGifts = document.getElementById('previousGifts');
-            const inputField = document.createElement('input');
-            inputField.type = 'text';
-            inputField.placeholder = '예: 10,000,000';
-            inputField.style.marginBottom = "10px";
-            previousGifts.appendChild(inputField);
-        });
-
-        // 과거 증여 금액 합산
-        function getTotalPreviousGifts() {
-            const inputs = document.querySelectorAll('#previousGifts input');
-            let total = 0;
-            inputs.forEach(input => {
-                total += parseInt(input.value.replace(/,/g, '')) || 0;
-            });
-            return total;
-        }
-
-        // 취득세와 지방교육세 계산
-        function calculateLocalTaxes(realEstateValue) {
-            const acquisitionTaxRate = 3.5 / 100; // 취득세율
-            const educationTaxRate = 10 / 100; // 지방교육세율
-
-            const acquisitionTax = realEstateValue * acquisitionTaxRate;
-            const educationTax = acquisitionTax * educationTaxRate;
-
-            return {
-                acquisitionTax: Math.round(acquisitionTax),
-                educationTax: Math.round(educationTax)
-            };
-        }
-
-        // 증여세 및 지방세 계산
-        document.getElementById('taxForm').onsubmit = function (e) {
-            e.preventDefault();
-
-            const assetType = document.getElementById('assetType').value;
-            const relationship = document.getElementById('relationship').value;
-            const exemption = parseInt(relationship) || 0;
-
-            let giftAmount = 0;
-            if (assetType === 'cash') {
-                giftAmount = parseInt(document.getElementById('cashAmount').value.replace(/,/g, '')) || 0;
-            } else if (assetType === 'realEstate') {
-                giftAmount = parseInt(document.getElementById('realEstateValue').value.replace(/,/g, '')) || 0;
-            }
-
-            const previousGift = getTotalPreviousGifts();
-            const totalTaxable = Math.max(giftAmount + previousGift - exemption, 0);
-
-            let tax = 0;
-            for (let i = 0; i < taxBrackets.length; i++) {
-                const bracket = taxBrackets[i];
-                const prevLimit = taxBrackets[i - 1]?.limit || 0;
-
-                if (totalTaxable > bracket.limit) {
-                    tax += (bracket.limit - prevLimit) * (bracket.rate / 100);
-                } else {
-                    tax += (totalTaxable - prevLimit) * (bracket.rate / 100);
-                    tax -= bracket.deduction;
-                    break;
-                }
-            }
-
-            tax = Math.max(tax, 0);
-
-            // 취득세 및 지방교육세 계산 (부동산만 해당)
-            let localTaxes = { acquisitionTax: 0, educationTax: 0 };
-            if (assetType === 'realEstate') {
-                localTaxes = calculateLocalTaxes(giftAmount);
-            }
-
-            // 결과 출력
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = `
-                <p><strong>증여세:</strong> ${tax.toLocaleString()}원</p>
-                ${assetType === 'realEstate' ? `
-                    <p><strong>취득세:</strong> ${localTaxes.acquisitionTax.toLocaleString()}원</p>
-                    <p><strong>지방교육세:</strong> ${localTaxes.educationTax.toLocaleString()}원</p>
-                    <p><strong>총 지방세:</strong> ${(localTaxes.acquisitionTax + localTaxes.educationTax).toLocaleString()}원</p>
-                ` : ''}
-            `;
-        };
-    </script>
-   <script src="script.js"></script>
-
-</body>
-</html>
+<div id="result"></div>
