@@ -6,6 +6,30 @@ const taxBrackets = [
     { limit: Infinity, rate: 50, deduction: 460000000 }
 ];
 
+// 숫자에 콤마 추가하는 함수
+function formatNumberWithCommas(number) {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// 콤마 제거 함수
+function removeCommas(value) {
+    return value.replace(/,/g, '');
+}
+
+// 금액 입력 필드에 콤마를 적용하는 이벤트 연결 함수
+function attachCommaFormatter(selector) {
+    document.querySelectorAll(selector).forEach(inputField => {
+        inputField.addEventListener('input', function () {
+            const rawValue = removeCommas(this.value);
+            if (!isNaN(rawValue) && rawValue !== '') {
+                this.value = formatNumberWithCommas(rawValue);
+            } else {
+                this.value = ''; // 잘못된 값은 초기화
+            }
+        });
+    });
+}
+
 // 재산 유형에 따라 입력 필드 표시
 document.getElementById('assetType').addEventListener('change', function () {
     const selectedType = this.value;
@@ -30,6 +54,9 @@ document.getElementById('assetType').addEventListener('change', function () {
             <input type="text" id="stockPrice" placeholder="예: 50,000" class="comma-input">
         `;
     }
+
+    // 새로 생성된 입력 필드에 콤마 이벤트 연결
+    attachCommaFormatter('.comma-input');
 });
 
 // 과거 증여 금액 추가
@@ -41,28 +68,9 @@ document.getElementById('addGiftButton').addEventListener('click', function () {
     inputField.style.marginBottom = "10px";
     inputField.classList.add('comma-input'); // 콤마 포맷 대상
     previousGifts.appendChild(inputField);
-});
 
-// 숫자에 콤마 추가하는 함수
-function formatNumberWithCommas(number) {
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
-
-// 콤마 제거 함수
-function removeCommas(value) {
-    return value.replace(/,/g, '');
-}
-
-// 이벤트 위임 방식으로 모든 금액 입력 필드에 콤마 추가
-document.addEventListener('input', function (event) {
-    if (event.target && event.target.classList.contains('comma-input')) {
-        let rawValue = removeCommas(event.target.value); // 기존 콤마 제거
-        if (!isNaN(rawValue) && rawValue !== '') {
-            event.target.value = formatNumberWithCommas(rawValue);
-        } else {
-            event.target.value = ''; // 잘못된 입력은 초기화
-        }
-    }
+    // 새로 생성된 입력 필드에 콤마 이벤트 연결
+    attachCommaFormatter('.comma-input');
 });
 
 // 과거 증여 금액 합산
@@ -166,3 +174,6 @@ document.getElementById('taxForm').addEventListener('submit', function (e) {
         e.preventDefault();
     }
 });
+
+// 초기 페이지 로드 시 콤마 이벤트 연결
+attachCommaFormatter('.comma-input');
