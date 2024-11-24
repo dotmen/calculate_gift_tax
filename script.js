@@ -53,14 +53,14 @@ function removeCommas(value) {
     return value.replace(/,/g, '');
 }
 
-// 입력 필드에 자동으로 콤마 추가
+// 이벤트 위임 방식으로 모든 금액 입력 필드에 콤마 추가
 document.addEventListener('input', function (event) {
-    const target = event.target;
-    // 콤마가 적용되어야 하는 클래스만 처리
-    if (target.classList.contains('comma-input')) {
-        const rawValue = removeCommas(target.value); // 기존 콤마 제거
+    if (event.target && event.target.classList.contains('comma-input')) {
+        let rawValue = removeCommas(event.target.value); // 기존 콤마 제거
         if (!isNaN(rawValue) && rawValue !== '') {
-            target.value = formatNumberWithCommas(rawValue);
+            event.target.value = formatNumberWithCommas(rawValue);
+        } else {
+            event.target.value = ''; // 잘못된 입력은 초기화
         }
     }
 });
