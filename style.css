@@ -1,83 +1,59 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
+    background-color: #f4f4f4;
     margin: 0;
     padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
 
-.container {
-    max-width: 600px;
-    margin: 50px auto;
-    background: #fff;
-    padding: 20px;
+.calculator {
+    background: #ffffff;
     border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    text-align: center; /* 컨테이너 내부를 중앙 정렬 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    padding: 20px;
+    text-align: center;
 }
 
-h2 {
+.calculator h1 {
+    font-size: 24px;
     margin-bottom: 20px;
-    font-size: 24px; /* 제목 크기 유지 */
+}
+
+.calculator label {
+    display: block;
+    margin-bottom: 5px;
+    text-align: left;
     font-weight: bold;
 }
 
-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* 입력 칸과 버튼을 중앙 정렬 */
-}
-
-form label {
-    display: block;
-    margin: 10px 0 5px;
-    width: 100%; /* 라벨도 중앙 정렬에 맞게 */
-    text-align: left; /* 라벨 텍스트는 좌측 정렬 */
-}
-
-form input, form select, button {
-    width: 95%; /* 입력 칸과 드롭다운 폭 통일 */
-    max-width: 400px; /* 칸의 최대 폭 설정 */
+.calculator input, .calculator select, .calculator button {
+    width: calc(100% - 20px);
     padding: 10px;
     margin-bottom: 15px;
     border: 1px solid #ddd;
     border-radius: 5px;
-    font-size: 14px;
+    box-sizing: border-box;
 }
 
-button {
-    background-color: #007bff; /* 파란색 버튼 */
-    color: #fff;
-    cursor: pointer;
+.calculator button {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
     border: none;
-    padding: 10px;
-    font-size: 14px;
-    width: 100%; /* 버튼도 동일한 폭으로 설정 */
-    max-width: 400px;
+    cursor: pointer;
 }
 
-button:hover {
-    background-color: #0056b3; /* 진한 파란색 */
+.calculator button:hover {
+    background-color: #45a049;
 }
 
-.info-text {
-    font-size: 12px;
-    color: #6c757d;
-    margin-top: -10px;
-    margin-bottom: 10px;
-}
-
-.hidden {
-    display: none;
-}
-
-/* 결과 영역 스타일 */
-#results {
-    margin-top: 20px;
-    padding: 10px;
-    background-color: #e9f5ff;
-    border: 1px solid #007bff;
-    border-radius: 5px;
-    text-align: center;
-    font-size: 14px;
+#result {
+    font-size: 16px;
     color: #333;
+    margin-top: 20px;
+    text-align: left;
 }
