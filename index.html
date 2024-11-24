@@ -61,7 +61,7 @@
         #result {
             font-size: 16px;
             color: #333;
-            margin-top: 15px;
+            margin-top: 20px;
             text-align: left;
         }
     </style>
@@ -98,14 +98,15 @@
 
             <!-- 증여일 및 신고일 -->
             <label for="giftDate">증여일:</label>
-            <input type="date" id="giftDate" value="">
+            <input type="date" id="giftDate">
             <label for="reportDate">신고일:</label>
-            <input type="date" id="reportDate" value="">
+            <input type="date" id="reportDate">
 
             <!-- 계산 버튼 -->
             <button type="submit" id="button-calculate">계산하기</button>
         </form>
 
+        <!-- 결과 출력 -->
         <div id="result"></div>
     </div>
 
@@ -214,18 +215,4 @@
 
             // 취득세 및 지방교육세 계산 (부동산만 해당)
             let localTaxes = { acquisitionTax: 0, educationTax: 0 };
-            if (assetType === 'realEstate') {
-                localTaxes = calculateLocalTaxes(giftAmount);
-            }
-
-            const result = `
-                증여세: ${tax.toLocaleString()}원
-                취득세: ${localTaxes.acquisitionTax.toLocaleString()}원
-                지방교육세: ${localTaxes.educationTax.toLocaleString()}원
-                총 지방세: ${(localTaxes.acquisitionTax + localTaxes.educationTax).toLocaleString()}원
-            `;
-            document.getElementById('result').innerText = result;
-        };
-    </script>
-</body>
-</html>
+            if (assetType === 'realEstate
