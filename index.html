@@ -215,4 +215,21 @@
 
             // 취득세 및 지방교육세 계산 (부동산만 해당)
             let localTaxes = { acquisitionTax: 0, educationTax: 0 };
-            if (assetType === 'realEstate
+            if (assetType === 'realEstate') {
+                localTaxes = calculateLocalTaxes(giftAmount);
+            }
+
+            // 결과 출력
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <p><strong>증여세:</strong> ${tax.toLocaleString()}원</p>
+                ${assetType === 'realEstate' ? `
+                    <p><strong>취득세:</strong> ${localTaxes.acquisitionTax.toLocaleString()}원</p>
+                    <p><strong>지방교육세:</strong> ${localTaxes.educationTax.toLocaleString()}원</p>
+                    <p><strong>총 지방세:</strong> ${(localTaxes.acquisitionTax + localTaxes.educationTax).toLocaleString()}원</p>
+                ` : ''}
+            `;
+        };
+    </script>
+</body>
+</html>
