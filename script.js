@@ -66,6 +66,27 @@ function calculateLocalTaxes(realEstateValue) {
     };
 }
 
+// 숫자에 콤마 추가하는 함수
+function formatNumberWithCommas(number) {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// 콤마 제거 함수
+function removeCommas(value) {
+    return value.replace(/,/g, '');
+}
+
+// 입력 필드에 자동으로 콤마 추가
+document.addEventListener('input', function (event) {
+    const target = event.target;
+    if (target.tagName === 'INPUT' && target.type === 'text' && target.placeholder.includes('예:')) {
+        const rawValue = removeCommas(target.value); // 기존 콤마 제거
+        if (!isNaN(rawValue) && rawValue !== '') {
+            target.value = formatNumberWithCommas(rawValue);
+        }
+    }
+});
+
 // 증여세 및 지방세 계산
 document.getElementById('taxForm').onsubmit = function (e) {
     e.preventDefault();
@@ -76,9 +97,9 @@ document.getElementById('taxForm').onsubmit = function (e) {
 
     let giftAmount = 0;
     if (assetType === 'cash') {
-        giftAmount = parseInt(document.getElementById('cashAmount').value.replace(/,/g, '')) || 0;
+        giftAmount = parseInt(removeCommas(document.getElementById('cashAmount').value)) || 0;
     } else if (assetType === 'realEstate') {
-        giftAmount = parseInt(document.getElementById('realEstateValue').value.replace(/,/g, '')) || 0;
+        giftAmount = parseInt(removeCommas(document.getElementById('realEstateValue').value)) || 0;
     }
 
     const previousGift = getTotalPreviousGifts();
@@ -129,7 +150,7 @@ function validateInputs() {
     }
 
     // 금액 필드가 비어 있거나 숫자가 아닌 경우 경고 메시지 표시
-    if (amountField && (!amountField.value || isNaN(parseInt(amountField.value.replace(/,/g, ''))))) {
+    if (amountField && (!amountField.value || isNaN(parseInt(removeCommas(amountField.value)))) ) {
         alert("올바른 금액을 입력해주세요.");
         return false;
     }
