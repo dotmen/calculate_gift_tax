@@ -64,6 +64,12 @@
             margin-top: 15px;
             text-align: left;
         }
+
+        small {
+            display: block;
+            color: gray;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -96,9 +102,11 @@
 
             <label for="giftDate">증여일:</label>
             <input type="date" id="giftDate">
+            <small>증여일은 증여 계약서 서명일 또는 재산 이전일입니다.</small>
 
             <label for="reportDate">신고일:</label>
             <input type="date" id="reportDate">
+            <small>신고일은 증여세 신고 접수일을 기준으로 입력하세요.</small>
 
             <button type="submit" id="button-calculate">계산하기</button>
         </form>
@@ -181,12 +189,13 @@
             const giftDateInput = document.getElementById('giftDate').value;
             const reportDateInput = document.getElementById('reportDate').value;
 
-            if (!giftDateInput || !reportDateInput) {
+            if (!giftDateInput) {
+                alert("증여일을 입력해 주세요. (증여 계약서의 서명일 또는 재산 이전일)");
                 return 0;
             }
 
             const giftDate = new Date(giftDateInput);
-            const reportDate = new Date(reportDateInput);
+            const reportDate = reportDateInput ? new Date(reportDateInput) : new Date();
 
             if (isNaN(giftDate) || isNaN(reportDate)) {
                 alert("올바른 날짜를 입력해 주세요.");
@@ -224,6 +233,10 @@
                 최종 납부세액: ${Math.max(totalTax, 0).toLocaleString()}원
             `;
         };
+
+        // 기본값: 오늘 날짜 설정
+        document.getElementById('giftDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
     </script>
 </body>
 </html>
