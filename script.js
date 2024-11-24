@@ -15,19 +15,19 @@ document.getElementById('assetType').addEventListener('change', function () {
     if (selectedType === 'cash') {
         additionalFields.innerHTML = `
             <label for="cashAmount">현금 금액 (원):</label>
-            <input type="text" id="cashAmount" placeholder="예: 10,000,000">
+            <input type="text" id="cashAmount" placeholder="예: 10,000,000" class="comma-input">
         `;
     } else if (selectedType === 'realEstate') {
         additionalFields.innerHTML = `
             <label for="realEstateValue">부동산 공시가격 (원):</label>
-            <input type="text" id="realEstateValue" placeholder="예: 500,000,000">
+            <input type="text" id="realEstateValue" placeholder="예: 500,000,000" class="comma-input">
         `;
     } else if (selectedType === 'stock') {
         additionalFields.innerHTML = `
             <label for="stockQuantity">주식 수량:</label>
             <input type="number" id="stockQuantity" placeholder="예: 100">
             <label for="stockPrice">증여일 기준 주가 (원):</label>
-            <input type="text" id="stockPrice" placeholder="예: 50,000">
+            <input type="text" id="stockPrice" placeholder="예: 50,000" class="comma-input">
         `;
     }
 });
@@ -39,7 +39,30 @@ document.getElementById('addGiftButton').addEventListener('click', function () {
     inputField.type = 'text';
     inputField.placeholder = '예: 10,000,000';
     inputField.style.marginBottom = "10px";
+    inputField.classList.add('comma-input'); // 콤마 포맷 대상
     previousGifts.appendChild(inputField);
+});
+
+// 숫자에 콤마 추가하는 함수
+function formatNumberWithCommas(number) {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// 콤마 제거 함수
+function removeCommas(value) {
+    return value.replace(/,/g, '');
+}
+
+// 입력 필드에 자동으로 콤마 추가
+document.addEventListener('input', function (event) {
+    const target = event.target;
+    // 콤마가 적용되어야 하는 클래스만 처리
+    if (target.classList.contains('comma-input')) {
+        const rawValue = removeCommas(target.value); // 기존 콤마 제거
+        if (!isNaN(rawValue) && rawValue !== '') {
+            target.value = formatNumberWithCommas(rawValue);
+        }
+    }
 });
 
 // 과거 증여 금액 합산
@@ -47,7 +70,7 @@ function getTotalPreviousGifts() {
     const inputs = document.querySelectorAll('#previousGifts input');
     let total = 0;
     inputs.forEach(input => {
-        total += parseInt(input.value.replace(/,/g, '')) || 0;
+        total += parseInt(removeCommas(input.value)) || 0;
     });
     return total;
 }
@@ -65,27 +88,6 @@ function calculateLocalTaxes(realEstateValue) {
         educationTax: Math.round(educationTax)
     };
 }
-
-// 숫자에 콤마 추가하는 함수
-function formatNumberWithCommas(number) {
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
-
-// 콤마 제거 함수
-function removeCommas(value) {
-    return value.replace(/,/g, '');
-}
-
-// 입력 필드에 자동으로 콤마 추가
-document.addEventListener('input', function (event) {
-    const target = event.target;
-    if (target.tagName === 'INPUT' && target.type === 'text' && target.placeholder.includes('예:')) {
-        const rawValue = removeCommas(target.value); // 기존 콤마 제거
-        if (!isNaN(rawValue) && rawValue !== '') {
-            target.value = formatNumberWithCommas(rawValue);
-        }
-    }
-});
 
 // 증여세 및 지방세 계산
 document.getElementById('taxForm').onsubmit = function (e) {
