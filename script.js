@@ -6,29 +6,41 @@ const taxBrackets = [
     { limit: Infinity, rate: 50, deduction: 460000000 }
 ];
 
-// 숫자에 콤마 추가하는 함수
+// 숫자에 콤마 추가
 function formatNumberWithCommas(number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-// 콤마 제거 함수
+// 콤마 제거
 function removeCommas(value) {
     return value.replace(/,/g, '');
 }
 
-// 입력 필드에 실시간 콤마 추가
-function attachCommaEvent(input) {
-    input.addEventListener('input', function () {
-        const rawValue = removeCommas(this.value);
-        if (!isNaN(rawValue) && rawValue !== '') {
-            this.value = formatNumberWithCommas(rawValue);
-        } else {
-            this.value = ''; // 잘못된 입력 초기화
-        }
+// 과거 증여 금액 합산
+function getTotalPreviousGifts() {
+    const inputs = document.querySelectorAll('#previousGifts input');
+    let total = 0;
+    inputs.forEach(input => {
+        total += parseInt(removeCommas(input.value)) || 0; // 콤마 제거 후 합산
     });
+    return total;
 }
 
-// 재산 유형에 따라 입력 필드 표시
+// 취득세와 지방교육세 계산
+function calculateLocalTaxes(realEstateValue) {
+    const acquisitionTaxRate = 3.5 / 100; // 취득세율
+    const educationTaxRate = 10 / 100; // 지방교육세율
+
+    const acquisitionTax = realEstateValue * acquisitionTaxRate;
+    const educationTax = acquisitionTax * educationTaxRate;
+
+    return {
+        acquisitionTax: Math.round(acquisitionTax),
+        educationTax: Math.round(educationTax)
+    };
+}
+
+// 재산 유형 변경 시 동적 필드 생성
 document.getElementById('assetType').addEventListener('change', function () {
     const selectedType = this.value;
     const additionalFields = document.getElementById('additionalFields');
@@ -68,31 +80,19 @@ document.getElementById('addGiftButton').addEventListener('click', function () {
     attachCommaEvent(inputField);
 });
 
-// 과거 증여 금액 합산
-function getTotalPreviousGifts() {
-    const inputs = document.querySelectorAll('#previousGifts input');
-    let total = 0;
-    inputs.forEach(input => {
-        total += parseInt(removeCommas(input.value)) || 0;
+// 입력 필드에 콤마 이벤트 연결
+function attachCommaEvent(input) {
+    input.addEventListener('input', function () {
+        const rawValue = removeCommas(this.value); // 콤마 제거
+        if (!isNaN(rawValue) && rawValue !== '') {
+            this.value = formatNumberWithCommas(rawValue); // 콤마 적용
+        } else {
+            this.value = ''; // 잘못된 값 초기화
+        }
     });
-    return total;
 }
 
-// 취득세와 지방교육세 계산
-function calculateLocalTaxes(realEstateValue) {
-    const acquisitionTaxRate = 3.5 / 100; // 취득세율
-    const educationTaxRate = 10 / 100; // 지방교육세율
-
-    const acquisitionTax = realEstateValue * acquisitionTaxRate;
-    const educationTax = acquisitionTax * educationTaxRate;
-
-    return {
-        acquisitionTax: Math.round(acquisitionTax),
-        educationTax: Math.round(educationTax)
-    };
-}
-
-// 증여세 및 지방세 계산
+// 증여세 계산
 document.getElementById('taxForm').onsubmit = function (e) {
     e.preventDefault();
 
