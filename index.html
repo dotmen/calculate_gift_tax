@@ -70,6 +70,7 @@
     <div class="calculator">
         <h1 id="title">증여세 계산기 (2024년 기준)</h1>
         <form id="taxForm">
+            <!-- 재산 유형 -->
             <label for="assetType">재산 유형:</label>
             <select id="assetType">
                 <option value="cash">현금</option>
@@ -77,11 +78,8 @@
                 <option value="stock">주식</option>
             </select>
 
-            <div id="additionalFields">
-                <!-- 기본 추가 필드 -->
-                <label for="realEstateValue">부동산 공시가격 (원):</label>
-                <input type="text" id="realEstateValue" placeholder="예: 500,000,000">
-            </div>
+            <!-- 추가 필드 -->
+            <div id="additionalFields"></div>
 
             <label for="relationship">관계:</label>
             <select id="relationship">
@@ -117,11 +115,11 @@
             { limit: Infinity, rate: 50, deduction: 460000000 }
         ];
 
-        // 재산 유형 선택 시 추가 필드 변경
+        // 재산 유형 선택 시 추가 필드 표시
         document.getElementById('assetType').addEventListener('change', function () {
             const selectedType = this.value;
             const additionalFields = document.getElementById('additionalFields');
-            additionalFields.innerHTML = ''; // 초기화
+            additionalFields.innerHTML = '';
 
             if (selectedType === 'realEstate') {
                 additionalFields.innerHTML = `
@@ -156,6 +154,26 @@
                 total += parseInt(input.value.replace(/,/g, '')) || 0;
             });
             return total;
+        }
+
+        // 누진세 계산
+        function calculateProgressiveTax(totalTaxable) {
+            let tax = 0;
+
+            for (let i = 0; i < taxBrackets.length; i++) {
+                const bracket = taxBrackets[i];
+                const prevLimit = taxBrackets[i - 1]?.limit || 0;
+
+                if (totalTaxable > bracket.limit) {
+                    tax += (bracket.limit - prevLimit) * (bracket.rate / 100);
+                } else {
+                    tax += (totalTaxable - prevLimit) * (bracket.rate / 100);
+                    tax -= bracket.deduction;
+                    break;
+                }
+            }
+
+            return Math.max(tax, 0);
         }
 
         // 가산세 계산
@@ -196,19 +214,16 @@
             const previousGift = getTotalPreviousGifts();
             const totalTaxable = Math.max(giftAmount + previousGift - exemption, 0);
 
-            let tax = 0;
-            for (let bracket of taxBrackets) {
-                if (totalTaxable > bracket.limit) {
-                    tax += (bracket.limit - (taxBrackets[taxBrackets.indexOf(bracket) - 1]?.limit || 0)) * (bracket.rate / 100);
-                } else {
-                    tax += (totalTaxable - (taxBrackets[taxBrackets.indexOf(bracket) - 1]?.limit || 0)) * (bracket.rate / 100);
-                    tax -= bracket.deduction;
-                    break;
-                }
-            }
-
+            const tax = calculateProgressiveTax(totalTaxable);
             const penalty = calculatePenalty(tax);
             const totalTax = tax + penalty;
 
             document.getElementById('result').innerText = `
-                증
+                증여세: ${Math.max(tax, 0).toLocaleString()}원
+                가산세: ${Math.max(penalty, 0).toLocaleString()}원
+                최종 납부세액: ${Math.max(totalTax, 0).toLocaleString()}원
+            `;
+        };
+    </script>
+</body>
+</html>
