@@ -1,30 +1,97 @@
-<h1>증여세 계산기</h1>
-<form id="gift-tax-form">
-    <label>이번 증여 금액 (₩):</label>
-    <input type="number" id="current-gift" required>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>증여세 계산기 (2024년 기준)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>증여세 계산기 (2024년 기준)</h1>
 
-    <label>과거 증여 금액 (₩):</label>
-    <input type="number" id="past-gift" required>
+        <!-- 증여 금액 -->
+        <div class="form-group">
+            <label for="giftAmount">증여 금액 (원):</label>
+            <input type="text" id="giftAmount" placeholder="예: 200,000,000">
+        </div>
 
-    <label>증여자와의 관계:</label>
-    <select id="relationship">
-        <option value="child">자녀</option>
-        <option value="spouse">배우자</option>
-        <option value="in_law">사위/며느리</option>
-        <option value="other_relative">기타 친족</option>
-        <option value="others">기타</option>
-    </select>
+        <!-- 관계 -->
+        <div class="form-group">
+            <label for="relationship">관계:</label>
+            <select id="relationship">
+                <option value="600000000">배우자 - 공제 한도: 600,000,000원</option>
+                <option value="50000000">직계비속(성년 자녀) - 공제 한도: 50,000,000원</option>
+                <option value="20000000">미성년자 - 공제 한도: 20,000,000원</option>
+                <option value="50000000">사위/며느리 - 공제 한도: 50,000,000원</option>
+                <option value="10000000">기타 - 공제 한도: 10,000,000원</option>
+            </select>
+        </div>
 
-    <label>증여일:</label>
-    <input type="date" id="gift-date" required>
+        <!-- 계산 버튼 -->
+        <button id="calculateButton">계산하기</button>
+        <div class="result" id="result">결과가 여기에 표시됩니다.</div>
+    </div>
 
-    <label>신고일:</label>
-    <input type="date" id="report-date" required>
+    <script>
+        // 자동 콤마 추가 기능
+        document.getElementById("giftAmount").addEventListener("input", function (event) {
+            const input = event.target;
+            let value = input.value;
 
-    <label>가산세 계산 포함:</label>
-    <input type="checkbox" id="include-penalty">
+            // 숫자가 아닌 문자는 모두 제거
+            value = value.replace(/[^0-9]/g, "");
 
-    <button type="submit">계산하기</button>
-</form>
+            // 천 단위 콤마 추가
+            value = new Intl.NumberFormat().format(value);
 
-<div id="result"></div>
+            // 업데이트된 값 설정
+            input.value = value;
+        });
+
+        // 증여세 계산 버튼 클릭 이벤트
+        document.getElementById("calculateButton").addEventListener("click", function () {
+            const giftAmountInput = document.getElementById("giftAmount").value;
+            const relationshipInput = document.getElementById("relationship").value;
+
+            // 입력값 검증
+            if (!giftAmountInput) {
+                alert("증여 금액을 입력하세요.");
+                return;
+            }
+
+            const giftAmount = parseInt(giftAmountInput.replace(/,/g, ""), 10); // 숫자 변환
+            const exemptionLimit = parseInt(relationshipInput, 10); // 선택한 관계의 공제 한도
+
+            // 증여세 계산
+            let taxableAmount = giftAmount - exemptionLimit; // 과세 표준 계산
+            taxableAmount = taxableAmount > 0 ? taxableAmount : 0; // 과세 표준이 음수일 경우 0으로 설정
+
+            let giftTax = 0; // 증여세 초기화
+
+            // 증여세 계산 (세율 적용)
+            if (taxableAmount <= 100000000) {
+                giftTax = taxableAmount * 0.1; // 10%
+            } else if (taxableAmount <= 500000000) {
+                giftTax = 10000000 + (taxableAmount - 100000000) * 0.2; // 20%
+            } else if (taxableAmount <= 1000000000) {
+                giftTax = 90000000 + (taxableAmount - 500000000) * 0.3; // 30%
+            } else if (taxableAmount <= 3000000000) {
+                giftTax = 240000000 + (taxableAmount - 1000000000) * 0.4; // 40%
+            } else {
+                giftTax = 1040000000 + (taxableAmount - 3000000000) * 0.5; // 50%
+            }
+
+            // 결과 표시
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = `
+                <h3>계산 결과</h3>
+                <p>증여 금액: ${new Intl.NumberFormat().format(giftAmount)}원</p>
+                <p>공제 한도: ${new Intl.NumberFormat().format(exemptionLimit)}원</p>
+                <p>과세 표준: ${new Intl.NumberFormat().format(taxableAmount)}원</p>
+                <p><strong>증여세: ${new Intl.NumberFormat().format(giftTax)}원</strong></p>
+            `;
+        });
+    </script>
+</body>
+</html>
