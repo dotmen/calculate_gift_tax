@@ -12,27 +12,31 @@ body {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center; /* 컨테이너 내부를 중앙 정렬 */
 }
 
 h2 {
-    text-align: center;
     margin-bottom: 20px;
-    font-size: 20px; /* 제목 크기 */
+    font-size: 24px; /* 제목 크기 유지 */
+    font-weight: bold;
 }
 
-h3 {
-    margin-top: 20px;
-    font-size: 18px;
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 입력 칸과 버튼을 중앙 정렬 */
 }
 
 form label {
     display: block;
     margin: 10px 0 5px;
+    width: 100%; /* 라벨도 중앙 정렬에 맞게 */
+    text-align: left; /* 라벨 텍스트는 좌측 정렬 */
 }
 
 form input, form select, button {
-    width: 90%; /* 모든 입력 필드와 버튼 길이 조정 */
-    max-width: 400px;
+    width: 95%; /* 입력 칸과 드롭다운 폭 통일 */
+    max-width: 400px; /* 칸의 최대 폭 설정 */
     padding: 10px;
     margin-bottom: 15px;
     border: 1px solid #ddd;
@@ -41,12 +45,14 @@ form input, form select, button {
 }
 
 button {
-    background-color: #007bff; /* 버튼 파란색 */
+    background-color: #007bff; /* 파란색 버튼 */
     color: #fff;
     cursor: pointer;
     border: none;
     padding: 10px;
     font-size: 14px;
+    width: 100%; /* 버튼도 동일한 폭으로 설정 */
+    max-width: 400px;
 }
 
 button:hover {
@@ -64,9 +70,14 @@ button:hover {
     display: none;
 }
 
-.result-info {
-    font-size: 12px;
-    color: #6c757d;
-    text-align: center;
+/* 결과 영역 스타일 */
+#results {
     margin-top: 20px;
+    padding: 10px;
+    background-color: #e9f5ff;
+    border: 1px solid #007bff;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 14px;
+    color: #333;
 }
