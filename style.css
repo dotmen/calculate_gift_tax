@@ -1,41 +1,65 @@
 body {
     font-family: Arial, sans-serif;
-    max-width: 800px;
-    margin: 20px auto;
-    line-height: 1.6;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
 }
 
-form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
+.container {
+    max-width: 600px;
+    margin: 50px auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-label {
-    flex: 1 1 100px;
-    font-weight: bold;
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px; /* 제목 크기 조정 */
 }
 
-input, select, button {
-    flex: 1 1 200px;
+h3 {
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+form label {
+    display: block;
+    margin: 10px 0 5px;
+}
+
+form input, form select, button {
+    width: 95%; /* 칸 길이 동일하게 조정 */
+    max-width: 400px;
     padding: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
 }
 
 button {
-    background-color: #007BFF;
-    color: white;
-    border: none;
+    background-color: #007bff; /* 파란색 버튼 */
+    color: #fff;
     cursor: pointer;
+    border: none;
+    padding: 10px;
+    font-size: 14px;
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #0056b3; /* 진한 파란색 */
 }
 
-#result {
-    margin-top: 20px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    background-color: #f9f9f9;
+.info-text {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: -10px;
+    margin-bottom: 10px;
+}
+
+.hidden {
+    display: none;
 }
