@@ -17,7 +17,7 @@ body {
 h2 {
     text-align: center;
     margin-bottom: 20px;
-    font-size: 20px; /* 제목 크기 조정 */
+    font-size: 20px; /* 제목 크기 */
 }
 
 h3 {
@@ -31,7 +31,7 @@ form label {
 }
 
 form input, form select, button {
-    width: 90%; /* 모든 입력 칸 폭 조정 */
+    width: 90%; /* 모든 입력 필드와 버튼 길이 조정 */
     max-width: 400px;
     padding: 10px;
     margin-bottom: 15px;
@@ -41,7 +41,7 @@ form input, form select, button {
 }
 
 button {
-    background-color: #007bff; /* 파란색으로 변경 */
+    background-color: #007bff; /* 버튼 파란색 */
     color: #fff;
     cursor: pointer;
     border: none;
@@ -50,7 +50,7 @@ button {
 }
 
 button:hover {
-    background-color: #0056b3; /* 진한 파란색으로 변경 */
+    background-color: #0056b3; /* 진한 파란색 */
 }
 
 .info-text {
