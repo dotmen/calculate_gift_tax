@@ -17,8 +17,12 @@ body {
 h2 {
     text-align: center;
     margin-bottom: 20px;
-    font-size: 22px; /* 제목 크기 조정 */
-    font-weight: bold;
+    font-size: 20px; /* 제목 크기 */
+}
+
+h3 {
+    margin-top: 20px;
+    font-size: 18px;
 }
 
 form label {
@@ -27,7 +31,7 @@ form label {
 }
 
 form input, form select, button {
-    width: 95%; /* 칸 길이 통일 */
+    width: 90%; /* 모든 입력 필드와 버튼 길이 조정 */
     max-width: 400px;
     padding: 10px;
     margin-bottom: 15px;
@@ -37,7 +41,7 @@ form input, form select, button {
 }
 
 button {
-    background-color: #007bff; /* 파란색 버튼 */
+    background-color: #007bff; /* 버튼 파란색 */
     color: #fff;
     cursor: pointer;
     border: none;
@@ -60,14 +64,9 @@ button:hover {
     display: none;
 }
 
-/* 결과 영역 스타일 */
-#results {
-    margin-top: 20px;
-    padding: 10px;
-    background-color: #e9f5ff;
-    border: 1px solid #007bff;
-    border-radius: 5px;
+.result-info {
+    font-size: 12px;
+    color: #6c757d;
     text-align: center;
-    font-size: 14px;
-    color: #333;
+    margin-top: 20px;
 }
